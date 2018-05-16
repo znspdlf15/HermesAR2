@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">HermesAR</string>
+    <string name="button_AR">AR모드</string>
+    <string name="button_Desti">목적지 지정</string>
+    <string name="button_Start">출발지 지정</string>
+    <string name="button_current">현재 지점</string>
+    <string name="button_search">검색</string>
+</resources>
