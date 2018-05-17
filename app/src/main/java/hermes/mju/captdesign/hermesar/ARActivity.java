@@ -1,6 +1,7 @@
 package hermes.mju.captdesign.hermesar;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Sensor;
@@ -21,6 +22,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 
 public class ARActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
@@ -46,6 +49,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     boolean isNetworkEnabled;
     boolean locationServiceAvailable;
 
+
+    ArrayList listOfPoint;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +62,11 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         tvCurrentLocation = (TextView) findViewById(R.id.tv_current_location);
         arOverlayView = new AROverlayView(this);
         arOverlayView.updateARPoint();
+
+        //listOfPoint 받아오는 작업
+        Intent intent = getIntent();
+        listOfPoint = (ArrayList<ARPoint>)intent.getSerializableExtra("listOfPoint");
+        arOverlayView.updateARPoint(listOfPoint);
     }
 
     @Override

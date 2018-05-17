@@ -35,7 +35,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * Created by Tak on 2018-05-09.
  */
 
-public class HermesActivity extends Activity implements TMapGpsManager.onLocationChangedCallback, View.OnClickListener{
+public class HermesActivity extends Activity implements TMapGpsManager.onLocationChangedCallback, View.OnClickListener {
     /* 버튼 */
     private Button arButton;
     private Button desButton;
@@ -55,7 +55,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     private TMapGpsManager tmapgps = null;
     private TMapView tmapview = null;
 
-    final ArrayList listOfPoint = new ArrayList(); // 시작점 부터 도착점까지 좌표 체크 리스트
+    final ArrayList<ARPoint> listOfPoint = new ArrayList<ARPoint>(); // 시작점 부터 도착점까지 좌표 체크 리스트
 
     private Context mContext = null;
     private boolean m_bTrackingMode = true;
@@ -162,7 +162,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         endpoint = new TMapPoint(37.565628, 126.974796);
 
 
-        //findPath();
+        findPath();
     }
 
     public void findPath() {
@@ -184,7 +184,10 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     public void onClick(View view) {
         if(view == arButton){
-            startActivity(new Intent(this,ARActivity.class));
+            //listOfPoint를 ARActivity로 넘기는 작업
+            Intent intent = new Intent(this,ARActivity.class);
+            intent.putExtra("listOfPoint", listOfPoint);
+            startActivity(intent);
         }
         //현재 위치 버튼 클릭 시
         if(view == currentButton){
@@ -213,7 +216,8 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     }
     public void TmapSetStart(){
-
+        tmapview.setCenterPoint(126.985567, 37.570243, true);
+        tmapview.setLocationPoint(126.985567, 37.570243);
     }
     public void findAllCoordinates(){
         tmapdata.findPathDataAllType(TMapData.TMapPathType.PEDESTRIAN_PATH, startpoint, endpoint, new TMapData.FindPathDataAllListenerCallback() {
@@ -229,7 +233,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
                             NodeList nl = nodeListPlacemarkItem.item(j).getChildNodes();
                             for( int k=0; k<nl.getLength(); k++ ) {
                                 if ( nl.item(k).getNodeName().equals("coordinates")) {
-                                    listOfPoint.add(nl.item(k).getTextContent());
+                                    addARPoints(nl.item(k).getTextContent());
                                     //LineNodeList.addToNode(nl.item(k));
                                     //Log.d("debug", nl.item(k).getTextContent());
                                 }
@@ -239,6 +243,24 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
                 }
             }
         });
+    }
+
+    // 얻은 Coordinate를 경도 위도로 분리하여 ARPoint 를 만듦
+    // altitude 어떻게 할지 생각해야함.
+    public void addARPoints(String str){
+        String[] temp = str.split("\\s");
+
+        for ( Integer i = 0; i < temp.length; i++){
+            String[] temp2 = temp[i].split(",");
+            listOfPoint.add(new ARPoint(i.toString(), Double.parseDouble(temp2[0]), Double.parseDouble(temp2[1]), 120));
+        }
+
+       /* if ( temp2.length == 2 ) {
+            listOfPoint.add(new ARPoint(index.toString(), Double.parseDouble(temp2[0]), Double.parseDouble(temp2[1]), 210));
+        } else if ( temp2.length == 4){
+            listOfPoint.add(new ARPoint(index.toString(), Double.parseDouble(temp2[0]), Double.parseDouble(temp2[1]), 210));
+            listOfPoint.add(new ARPoint(index.toString(), Double.parseDouble(temp2[2]), Double.parseDouble(temp2[3]), 210));
+        }*/
     }
 
 

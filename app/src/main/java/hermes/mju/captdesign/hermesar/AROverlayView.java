@@ -33,19 +33,22 @@ public class AROverlayView extends View {
         //Demo points
 
     }
+
+    public void updateARPoint(ArrayList<ARPoint> list){
+        arPoints = list;
+    }
     public void updateARPoint(){
         arPoints = new ArrayList<ARPoint>() {{
-            add(new ARPoint("NORTH", 37.2219417+0.02, 127.18768109999996, 210));
-            add(new ARPoint("SOUTH", 37.2219417-0.02, 127.18768109999996, 210));
-            add(new ARPoint("WEST", 37.2219417, 127.18768109999996-0.02, 210));
-            add(new ARPoint("EAST", 37.2219417, 127.18768109999996+0.02, 210));
+            /*add(new ARPoint("NORTH", 37.2219417 + 0.02, 127.18768109999996, 210));
+            add(new ARPoint("SOUTH", 37.2219417 - 0.02, 127.18768109999996, 210));
+            add(new ARPoint("WEST", 37.2219417, 127.18768109999996 - 0.02, 210));
+            add(new ARPoint("EAST", 37.2219417, 127.18768109999996 + 0.02, 210));*/
 
 
-//            add(new ARPoint("NORTH", currentLocation.getLatitude()+0.002, currentLocation.getLongitude(), currentLocation.getAltitude()));
-            //          add(new ARPoint("SOUTH",  currentLocation.getLatitude()-0.002, currentLocation.getLongitude(), currentLocation.getAltitude()));
-            //        add(new ARPoint("WEST",  currentLocation.getLatitude(), currentLocation.getLongitude()-0.002, currentLocation.getAltitude()));
-            //      add(new ARPoint("EAST",  currentLocation.getLatitude(), currentLocation.getLongitude()+0.002, currentLocation.getAltitude()));
-
+            //add(new ARPoint("NORTH", currentLocation.getLatitude()+0.002, currentLocation.getLongitude(), currentLocation.getAltitude()));
+            //add(new ARPoint("SOUTH",  currentLocation.getLatitude()-0.002, currentLocation.getLongitude(), currentLocation.getAltitude()));
+            //add(new ARPoint("WEST",  currentLocation.getLatitude(), currentLocation.getLongitude()-0.002, currentLocation.getAltitude()));
+            //add(new ARPoint("EAST",  currentLocation.getLatitude(), currentLocation.getLongitude()+0.002, currentLocation.getAltitude()));
 
         }};
 
