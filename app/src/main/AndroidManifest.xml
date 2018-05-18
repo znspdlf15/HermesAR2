@@ -22,6 +22,7 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".ARActivity" />
         <activity android:name=".HermesActivity"/>
+        <activity android:name=".MapPopUP" android:theme="@android:style/Theme.DeviceDefault.Light.Dialog"/>
         <activity
             android:name=".splashActivity"
             android:theme="@style/Splash">

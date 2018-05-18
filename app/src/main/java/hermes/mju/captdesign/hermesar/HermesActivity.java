@@ -5,6 +5,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.PointF;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -17,6 +20,8 @@ import android.widget.LinearLayout;
 
 import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapGpsManager;
+import com.skt.Tmap.TMapMarkerItem;
+import com.skt.Tmap.TMapPOIItem;
 import com.skt.Tmap.TMapPoint;
 import com.skt.Tmap.TMapPolyLine;
 import com.skt.Tmap.TMapView;
@@ -35,7 +40,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * Created by Tak on 2018-05-09.
  */
 
-public class HermesActivity extends Activity implements TMapGpsManager.onLocationChangedCallback, View.OnClickListener {
+public class HermesActivity extends Activity implements TMapGpsManager.onLocationChangedCallback, View.OnClickListener, TMapView.OnLongClickListenerCallback, TMapView.OnClickListenerCallback {
     /* 버튼 */
     private Button arButton;
     private Button desButton;
@@ -43,17 +48,21 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     private Button currentButton;
 
     // 좌표
-    TMapPoint startpoint;
-    TMapPoint endpoint;
-    TMapPoint tpoint;
+    private TMapPoint startpoint;
+    private TMapPoint endpoint;
+    private TMapPoint tpoint;
 
     // 현재 좌표
-    double nowLatitude;
-    double nowLongitude;
+    private double nowLatitude;
+    private double nowLongitude;
+    private double nowAltitude;
 
     //gps manager
     private TMapGpsManager tmapgps = null;
     private TMapView tmapview = null;
+
+    //마지막 클릭한 좌표
+    private TMapPoint clickedPoint = null;
 
     final ArrayList<ARPoint> listOfPoint = new ArrayList<ARPoint>(); // 시작점 부터 도착점까지 좌표 체크 리스트
 
@@ -66,7 +75,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     private ArrayList<TMapPoint> m_tmapPoint = new ArrayList<TMapPoint>();
     private ArrayList<String> mArrayMarkerID = new ArrayList<String>();
 
-    TMapData tmapdata;
+    private TMapData tmapdata;
 
 
 
@@ -100,6 +109,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
         // button 연결
         initButton();
+
         mlocationManager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
 
 
@@ -110,6 +120,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         if (m_bTrackingMode) {
             nowLatitude = location.getLatitude();
             nowLongitude = location.getLongitude();
+            nowAltitude = location.getAltitude();
             tmapview.setLocationPoint(nowLongitude, nowLatitude);
         }
     }
@@ -158,20 +169,19 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         double longitude = tmapgps.getLocation().getLongitude();
         double latitude = tmapgps.getLocation().getLatitude();
         tpoint = new TMapPoint(latitude, longitude);
-        startpoint = new TMapPoint(37.570243, 126.985567);
-        endpoint = new TMapPoint(37.565628, 126.974796);
+        //startpoint = new TMapPoint(37.570243, 126.985567);
+        //endpoint = new TMapPoint(37.565628, 126.974796);
 
-
-        findPath();
+        //findPath();
     }
 
     public void findPath() {
         try {
-
-            TMapPolyLine pathdata = tmapdata.findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, startpoint, endpoint);
-            findAllCoordinates(); // 길 안내에 필요한 좌표들을 listOfPoint에 리스트로 저장
-            tmapview.addTMapPath(pathdata);
-
+            if ( startpoint != null && endpoint != null ) {
+                TMapPolyLine pathdata = tmapdata.findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, startpoint, endpoint);
+                findAllCoordinates(); // 길 안내에 필요한 좌표들을 listOfPoint에 리스트로 저장
+                tmapview.addTMapPath(pathdata);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParserConfigurationException e) {
@@ -213,13 +223,28 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         tmapview.setLocationPoint(nowLongitude, nowLatitude);
     }
     public void TmapSetDestination(){
-
+        endpoint = tmapview.getCenterPoint();                         //현재 지도 중심을 도착지로 설정
+        TMapMarkerItem d_tItem = new TMapMarkerItem();
+        Context s_context = mContext;
+        d_tItem.setTMapPoint(endpoint);
+        d_tItem.setName("목적지");
+        d_tItem.setVisible(TMapMarkerItem.VISIBLE);
+        Bitmap d_bitmap = BitmapFactory.decodeResource(s_context.getResources(),R.drawable.d_icon);
+        d_tItem.setIcon(d_bitmap);
+        tmapview.bringMarkerToFront(d_tItem);
+        findPath();                                                 //설정된 출발지,도착지로 보행자 경로표시
     }
-    public void TmapSetStart(){
-        tmapview.setCenterPoint(126.985567, 37.570243, true);
-        tmapview.setLocationPoint(126.985567, 37.570243);
+    public void TmapSetStart(){startpoint = tmapview.getCenterPoint();                         //현재 지도 중심을 출발지로 설정
+        TMapMarkerItem tItem = new TMapMarkerItem();
+        Context context = mContext;
+        tItem.setTMapPoint(startpoint);
+        tItem.setName("출발지");
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),R.drawable.s_icon);
+        tItem.setIcon(bitmap);
+        tmapview.bringMarkerToFront(tItem);
     }
     public void findAllCoordinates(){
+        listOfPoint.clear();
         tmapdata.findPathDataAllType(TMapData.TMapPathType.PEDESTRIAN_PATH, startpoint, endpoint, new TMapData.FindPathDataAllListenerCallback() {
             @Override
             public void onFindPathDataAll(Document document) {
@@ -248,11 +273,11 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     // 얻은 Coordinate를 경도 위도로 분리하여 ARPoint 를 만듦
     // altitude 어떻게 할지 생각해야함.
     public void addARPoints(String str){
-        String[] temp = str.split("\\s");
+        String[] temp = str.split("\\s");   // 공백으로 분리 각 좌표 분리
 
         for ( Integer i = 0; i < temp.length; i++){
-            String[] temp2 = temp[i].split(",");
-            listOfPoint.add(new ARPoint(i.toString(), Double.parseDouble(temp2[0]), Double.parseDouble(temp2[1]), 120));
+            String[] temp2 = temp[i].split(",");    // ,로 경도 위도 분리
+            listOfPoint.add(new ARPoint(i.toString(), Double.parseDouble(temp2[1]), Double.parseDouble(temp2[0]), nowAltitude));    // 일단 현재 고도로 설정함
         }
 
        /* if ( temp2.length == 2 ) {
@@ -269,4 +294,63 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         // 로그인하면 main activity로 돌아가지 못하게 막기. 추후에 로그아웃 등으로 기능을 바꿔야함
     }
 
+    // 일단 임시로.
+    @Override
+    public void onLongPressEvent(ArrayList<TMapMarkerItem> markerList, ArrayList<TMapPOIItem> click_point_list, TMapPoint click_point) {
+        clickedPoint = click_point;
+        popUPOnMap();
+    }
+
+    public void popUPOnMap(){
+        Intent i = new Intent(this, MapPopUP.class);
+        startActivityForResult(i, 0);   // requestCode 상수로 리팩토링 필요
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        switch (requestCode){
+            case 0:
+                makePoint(resultCode);
+                break;
+        }
+    }
+
+    // 이것도 상수로 리팩토링 필요 현재는 0: 시작점, 1: 도착점으로 구분했음
+    public void makePoint(int pointType){
+        if(pointType==0) {
+            startpoint = clickedPoint;
+            TMapMarkerItem tItem = new TMapMarkerItem();
+            Context context = mContext;
+            tItem.setTMapPoint(startpoint);
+            tItem.setName("ping");
+            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.s_icon);
+            tItem.setIcon(bitmap);
+            tmapview.bringMarkerToFront(tItem);
+        }
+        if(pointType==1){
+            endpoint = clickedPoint;
+            TMapMarkerItem tItem2 = new TMapMarkerItem();
+            Context context = mContext;
+            tItem2.setTMapPoint(endpoint);
+            tItem2.setName("ping2");
+            Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.d_icon);
+            tItem2.setIcon(bitmap2);
+            tmapview.bringMarkerToFront(tItem2);
+            findPath();
+        }
+    }
+
+    // 클릭해서 popup을 띄우고 싶은데, 이러면 화면 확대 축소할때도 떠서 일단 LongClick에다 popup을 띄우기로 함.
+    // 추후 수정.
+    @Override
+    public boolean onPressEvent(ArrayList<TMapMarkerItem> arrayList, ArrayList<TMapPOIItem> arrayList1, TMapPoint tMapPoint, PointF pointF) {
+
+        return false;
+    }
+
+    @Override
+    public boolean onPressUpEvent(ArrayList<TMapMarkerItem> arrayList, ArrayList<TMapPOIItem> arrayList1, TMapPoint tMapPoint, PointF pointF) {
+        //popUPOnMap();
+        return false;
+    }
 }

@@ -64,6 +64,8 @@ public class AROverlayView extends View {
         this.invalidate();
     }
 
+
+    // 점 그리기 추후에 수정.
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -79,7 +81,8 @@ public class AROverlayView extends View {
         paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
         paint.setTextSize(60);
 
-        for (int i = 0; i < arPoints.size(); i ++) {
+        for (int i = 0; i < 1; i ++) {
+        //for (int i = 0; i < arPoints.size(); i ++) {
             float[] currentLocationInECEF = LocationHelper.WSG84toECEF(currentLocation);
             float[] pointInECEF = LocationHelper.WSG84toECEF(arPoints.get(i).getLocation());
             float[] pointInENU = LocationHelper.ECEFtoENU(currentLocation, currentLocationInECEF, pointInECEF);

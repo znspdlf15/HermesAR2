@@ -5,4 +5,9 @@
     <string name="button_Start">출발지 지정</string>
     <string name="button_current">현재 지점</string>
     <string name="button_search">검색</string>
+
+
+    <!-- MapPopUP 상수 -->
+    <string name="returnStartPoint">시작점 반환</string>
+    <string name="returnEndPoint">도착점 반환</string>
 </resources>
