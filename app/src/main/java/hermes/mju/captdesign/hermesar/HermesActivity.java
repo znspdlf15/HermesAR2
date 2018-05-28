@@ -46,6 +46,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     private Button desButton;
     private Button startButton;
     private Button currentButton;
+    private Button searchButton;
 
     // 좌표
     private TMapPoint startpoint;
@@ -92,12 +93,14 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         desButton =  (Button)findViewById(R.id.DestiButton);
         startButton =  (Button)findViewById(R.id.startButton);
         currentButton =  (Button)findViewById(R.id.CurrentButton);
+        searchButton = (Button)findViewById(R.id.SearchButton);
 
 
         arButton.setOnClickListener(this);
         desButton.setOnClickListener(this);
         startButton.setOnClickListener(this);
         currentButton.setOnClickListener(this);
+        searchButton.setOnClickListener(this);
 
     }
     protected void onCreate(Bundle savedInstanceState){
@@ -251,6 +254,10 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         if(view == desButton){
             TmapSetDestination();
         }
+
+        if(view == searchButton){
+            gotoSearch();
+        }
     }
 
     public void TmapCurrent() {
@@ -279,6 +286,9 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),R.drawable.s_icon);
         tItem.setIcon(bitmap);
         tmapview.bringMarkerToFront(tItem);
+    }
+    public void gotoSearch(){
+        startActivity(new Intent(this, SearchActivity.class));
     }
     public void findAllCoordinates(){
         listOfPoint.clear();
