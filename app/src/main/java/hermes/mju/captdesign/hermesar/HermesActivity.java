@@ -40,7 +40,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * Created by Tak on 2018-05-09.
  */
 
-public class HermesActivity extends Activity implements TMapGpsManager.onLocationChangedCallback, View.OnClickListener, TMapView.OnLongClickListenerCallback, TMapView.OnClickListenerCallback {
+public class HermesActivity extends Activity implements TMapGpsManager.onLocationChangedCallback, View.OnClickListener, TMapView.OnLongClickListenerCallback {
     /* 버튼 */
     private Button arButton;
     private Button desButton;
@@ -52,10 +52,18 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     private TMapPoint endpoint;
     private TMapPoint tpoint;
 
+    private TMapPoint Nowpoint;
+
     // 현재 좌표
     private double nowLatitude;
     private double nowLongitude;
     private double nowAltitude;
+
+    // 롱클릭 좌표의 주소
+    private String pointAddress;
+
+    private TMapPoint startrenew;
+    private boolean pathing = false;
 
     //gps manager
     private TMapGpsManager tmapgps = null;
@@ -67,7 +75,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     final ArrayList<ARPoint> listOfPoint = new ArrayList<ARPoint>(); // 시작점 부터 도착점까지 좌표 체크 리스트
 
     private Context mContext = null;
-    private boolean m_bTrackingMode = true;
+
     private LocationManager mlocationManager;
 
     private static String mApiKey = "b8758f45-a63e-46a6-a68d-14011fb031f7"; // 발급받은 appKey
@@ -101,6 +109,10 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         tmapdata = new TMapData();
         tmapgps = new TMapGpsManager(this);
 
+
+        //위치 변경
+        tmapgps.setMinTime(1);
+        tmapgps.setMinDistance(5);
         // 지도 띄우기 반드시 initTmap을 먼저해야한다.
         initTmap();
 
@@ -116,18 +128,21 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     }
 
     @Override
+    //위치가 바뀔경우 실행
+    //경로안내 도중 현재위치가 바뀔경우 현재위치를 새로운 출발점으로 갱신하여 경로요청을 다시함
     public void onLocationChange(Location location) {
-        if (m_bTrackingMode) {
-            nowLatitude = location.getLatitude();
-            nowLongitude = location.getLongitude();
-            nowAltitude = location.getAltitude();
-            tmapview.setLocationPoint(nowLongitude, nowLatitude);
+        if(pathing==true) {
+            Nowpoint = tmapgps.getLocation();
+            tmapview.setCompassMode(true);
+            tmapview.setIconVisibility(true);
+            tmapview.setLocationPoint( Nowpoint.getLatitude(),Nowpoint.getLongitude());
+            re_findPath(Nowpoint);
         }
     }
 
     public void initGps(){
-        tmapgps.setMinTime(1000);
-        tmapgps.setMinDistance(1);
+        tmapgps.setMinTime(1);
+        tmapgps.setMinDistance(5);
         tmapgps.setProvider(tmapgps.GPS_PROVIDER); // gps로 현 위치를 잡습니다.
         tmapgps.setProvider(tmapgps.NETWORK_PROVIDER); //연결된 인터넷으로 현 위치를 받습니다.
         tmapgps.OpenGps();
@@ -175,9 +190,28 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         //findPath();
     }
 
+    //현재 위치 변경시 경로안내 현재위치를 출발점으로 다시 함
+    //spoint는 현재위치,새로운 출발점
+    public void re_findPath(TMapPoint spoint){
+        try {
+            if ( spoint != null && endpoint != null ) {
+                TMapPolyLine pathdata = tmapdata.findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, spoint, endpoint);
+                findAllCoordinates(); // 길 안내에 필요한 좌표들을 listOfPoint에 리스트로 저장
+                tmapview.addTMapPath(pathdata);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
+    };
+
     public void findPath() {
         try {
             if ( startpoint != null && endpoint != null ) {
+                pathing=true;
                 TMapPolyLine pathdata = tmapdata.findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, startpoint, endpoint);
                 findAllCoordinates(); // 길 안내에 필요한 좌표들을 listOfPoint에 리스트로 저장
                 tmapview.addTMapPath(pathdata);
@@ -191,6 +225,10 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         }
     }
 
+    public void passardata(){
+        Intent intent = new Intent(this,ARActivity.class);
+        intent.putExtra("listOfPoint", listOfPoint);
+    }
 
     public void onClick(View view) {
         if(view == arButton){
@@ -213,12 +251,11 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         if(view == desButton){
             TmapSetDestination();
         }
-
     }
 
     public void TmapCurrent() {
-        double longitude = tmapgps.getLocation().getLongitude();
-        double latitude = tmapgps.getLocation().getLatitude();
+        double nowLongitude = tmapgps.getLocation().getLongitude();
+        double nowLatitude = tmapgps.getLocation().getLatitude();
         tmapview.setCenterPoint(nowLongitude, nowLatitude, true);
         tmapview.setLocationPoint(nowLongitude, nowLatitude);
     }
@@ -260,7 +297,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
                                 if ( nl.item(k).getNodeName().equals("coordinates")) {
                                     addARPoints(nl.item(k).getTextContent());
                                     //LineNodeList.addToNode(nl.item(k));
-                                    //Log.d("debug", nl.item(k).getTextContent());
+                                    Log.d("debug", nl.item(k).getTextContent());
                                 }
                             }
                         }
@@ -278,6 +315,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         for ( Integer i = 0; i < temp.length; i++){
             String[] temp2 = temp[i].split(",");    // ,로 경도 위도 분리
             listOfPoint.add(new ARPoint(i.toString(), Double.parseDouble(temp2[1]), Double.parseDouble(temp2[0]), nowAltitude));    // 일단 현재 고도로 설정함
+
         }
 
        /* if ( temp2.length == 2 ) {
@@ -298,12 +336,22 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     @Override
     public void onLongPressEvent(ArrayList<TMapMarkerItem> markerList, ArrayList<TMapPOIItem> click_point_list, TMapPoint click_point) {
         clickedPoint = click_point;
+        try {
+            pointAddress = tmapdata.convertGpsToAddress(clickedPoint.getLatitude(),clickedPoint.getLongitude());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
         popUPOnMap();
     }
 
     public void popUPOnMap(){
-        Intent i = new Intent(this, MapPopUP.class);
-        startActivityForResult(i, 0);   // requestCode 상수로 리팩토링 필요
+        Intent popmap = new Intent(this, MapPopUP.class);
+        popmap.putExtra("spoint",pointAddress);
+        startActivityForResult(popmap, 0);   // requestCode 상수로 리팩토링 필요
     }
 
     @Override
@@ -317,6 +365,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     // 이것도 상수로 리팩토링 필요 현재는 0: 시작점, 1: 도착점으로 구분했음
     public void makePoint(int pointType){
+
         if(pointType==0) {
             startpoint = clickedPoint;
             TMapMarkerItem tItem = new TMapMarkerItem();
@@ -342,15 +391,5 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     // 클릭해서 popup을 띄우고 싶은데, 이러면 화면 확대 축소할때도 떠서 일단 LongClick에다 popup을 띄우기로 함.
     // 추후 수정.
-    @Override
-    public boolean onPressEvent(ArrayList<TMapMarkerItem> arrayList, ArrayList<TMapPOIItem> arrayList1, TMapPoint tMapPoint, PointF pointF) {
 
-        return false;
-    }
-
-    @Override
-    public boolean onPressUpEvent(ArrayList<TMapMarkerItem> arrayList, ArrayList<TMapPOIItem> arrayList1, TMapPoint tMapPoint, PointF pointF) {
-        //popUPOnMap();
-        return false;
-    }
 }

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 
 /**
  * Created by Tak on 2018-05-18.
@@ -15,6 +16,10 @@ import android.widget.Button;
 public class MapPopUP extends Activity implements View.OnClickListener{
     private Button buttonStartPoint;
     private Button buttonEndPoint;
+
+    private TextView gpslocatext;
+
+    private String selectpoint;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,12 +42,15 @@ public class MapPopUP extends Activity implements View.OnClickListener{
         setContentView(R.layout.map_click_pop_up);
 
         // Button 설정
+        gpslocatext = (TextView)findViewById(R.id.gpslocaView);
         buttonStartPoint = (Button)findViewById(R.id.btnStartPoint);
         buttonEndPoint = (Button)findViewById(R.id.btnEndPoint);
 
         buttonStartPoint.setOnClickListener(this);
         buttonEndPoint.setOnClickListener(this);
-
+        Intent i = getIntent();
+        selectpoint = (String)i.getSerializableExtra("spoint");
+        gpslocatext.setText(selectpoint);
 
     }
 

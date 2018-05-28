@@ -2,13 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 
     android:id="@+id/linearLayout"
-    android:orientation="vertical"
     android:layout_width="wrap_content"
-    android:background="#568dfb"
-    android:weightSum="10.0"
-    android:layout_gravity="center_vertical|center_horizontal"
+    android:layout_height="wrap_content"
     android:layout_centerHorizontal="true"
-    android:layout_height="200dp">
+    android:layout_gravity="center_vertical|center_horizontal"
+    android:background="#568dfb"
+    android:orientation="vertical"
+    android:weightSum="10.0">
 
     <!--<TextView
 
@@ -19,44 +19,53 @@
     -->
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
-        android:layout_height="200dp"
+        android:layout_height="237dp"
         android:layout_gravity="center_vertical|center_horizontal"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="fill_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="28dp"
             android:layout_gravity="center_vertical|center_horizontal"
-            android:orientation="vertical"/>
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/gpslocaView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center" />
+        </LinearLayout>
+
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="3"
-            android:text="시작지로 설정"
             android:id="@+id/btnStartPoint"
-            android:layout_gravity="center_vertical|center_horizontal"
-            />
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical|center_horizontal"
-            android:orientation="vertical"/>
-        <Button
             android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_gravity="center_vertical|center_horizontal"
             android:layout_weight="3"
-            android:text="도착지로 설정"
-            android:id="@+id/btnEndPoint"
-            android:layout_gravity="center_vertical|center_horizontal"/>
+            android:text="시작지로 설정" />
 
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
             android:layout_gravity="center_vertical|center_horizontal"
-            android:orientation="vertical"/>
+            android:layout_weight="1"
+            android:orientation="vertical" />
+
+        <Button
+            android:id="@+id/btnEndPoint"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_weight="3"
+            android:text="도착지로 설정" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_weight="1"
+            android:orientation="vertical" />
 
     </LinearLayout>
 
