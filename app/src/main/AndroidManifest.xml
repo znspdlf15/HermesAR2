@@ -21,8 +21,10 @@
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity" />
         <activity android:name=".ARActivity" />
-        <activity android:name=".HermesActivity"/>
-        <activity android:name=".MapPopUP" android:theme="@android:style/Theme.DeviceDefault.Light.Dialog"/>
+        <activity android:name=".HermesActivity" />
+        <activity
+            android:name=".MapPopUP"
+            android:theme="@android:style/Theme.DeviceDefault.Light.Dialog" />
         <activity
             android:name=".splashActivity"
             android:theme="@style/Splash">
@@ -32,7 +34,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SearchActivity"></activity>
+        <activity android:name=".SearchActivity" />
+
     </application>
 
 </manifest>
