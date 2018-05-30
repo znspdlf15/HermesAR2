@@ -72,6 +72,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     //마지막 클릭한 좌표
     private TMapPoint clickedPoint = null;
+    private boolean m_bTrackingMode = true;
 
     final ArrayList<ARPoint> listOfPoint = new ArrayList<ARPoint>(); // 시작점 부터 도착점까지 좌표 체크 리스트
 
@@ -112,7 +113,6 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         tmapdata = new TMapData();
         tmapgps = new TMapGpsManager(this);
 
-
         //위치 변경
         tmapgps.setMinTime(1);
         tmapgps.setMinDistance(5);
@@ -140,6 +140,12 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
             tmapview.setIconVisibility(true);
             tmapview.setLocationPoint( Nowpoint.getLatitude(),Nowpoint.getLongitude());
             re_findPath(Nowpoint);
+        }
+        if (m_bTrackingMode) {
+            nowLatitude = location.getLatitude();
+            nowLongitude = location.getLongitude();
+            nowAltitude = location.getAltitude();
+            tmapview.setLocationPoint(nowLongitude, nowLatitude);
         }
     }
 

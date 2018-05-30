@@ -16,6 +16,13 @@
             android:layout_height="match_parent" />
     </FrameLayout>
 
+    <ImageView
+        android:id="@+id/dirImg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background = "@drawable/direction"
+        />
+
     <TextView
         android:id="@+id/tv_current_location"
         android:layout_width="wrap_content"

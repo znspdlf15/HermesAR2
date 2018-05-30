@@ -1,6 +1,7 @@
 package hermes.mju.captdesign.hermesar;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
@@ -16,10 +17,14 @@ import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,12 +41,20 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     private ARCamera arCamera;
     private TextView tvCurrentLocation;
 
+    // img
+    private ImageView dirImg;
+
+    // 화면 해상도를 알기 위한 객체
+    DisplayMetrics metrics;
+    WindowManager windowManager;
+    ViewGroup.LayoutParams params;
+
     private SensorManager sensorManager;
     private final static int REQUEST_CAMERA_PERMISSIONS_CODE = 11;
     public static final int REQUEST_LOCATION_PERMISSIONS_CODE = 0;
 
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 10 meters
-    private static final long MIN_TIME_BW_UPDATES = 0;//1000 * 60 * 1; // 1 minute
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+    private static final long MIN_TIME_BW_UPDATES = 60;//1000 * 60 * 1; // 1 minute
 
     private LocationManager locationManager;
     public Location location;
@@ -50,11 +63,29 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     boolean locationServiceAvailable;
 
 
-    ArrayList listOfPoint;
+    ArrayList<ARPoint> roadList; // 읽어온 리스트
+    ArrayList<ARPoint> listOfPoint; // 좌표 리스트
+    ArrayList<ARPoint> pastPoint; // 이미 지난 포인트.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
+
+        // img 연결
+        dirImg = (ImageView) findViewById(R.id.dirImg);
+        dirImg.setImageResource(R.drawable.direction);
+
+        metrics = new DisplayMetrics();
+        windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+        windowManager.getDefaultDisplay().getMetrics(metrics);
+        params = (ViewGroup.LayoutParams) dirImg.getLayoutParams();
+
+        // 이미지 크기 및 안보이게 설정
+        params.width = metrics.widthPixels * 4 / 10;
+        params.height = metrics.heightPixels * 2 / 10;
+        dirImg.setLayoutParams(params);
+        dirImg.setVisibility(View.INVISIBLE);
+
 
         sensorManager = (SensorManager) this.getSystemService(SENSOR_SERVICE);
         cameraContainerLayout = (FrameLayout) findViewById(R.id.camera_container_layout);
@@ -65,8 +96,19 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
         //listOfPoint 받아오는 작업
         Intent intent = getIntent();
-        listOfPoint = (ArrayList<ARPoint>)intent.getSerializableExtra("listOfPoint");
+        roadList = (ArrayList<ARPoint>)intent.getSerializableExtra("listOfPoint");
+        listOfPoint = new ArrayList<ARPoint>();
+        pastPoint = new ArrayList<ARPoint>();
+        copyList();
         arOverlayView.updateARPoint(listOfPoint);
+
+    }
+
+    // 읽어온 리스트를 listOfPoint로 복사.
+    public void copyList(){
+        for( int n = 0; n < roadList.size(); n++){
+            listOfPoint.add(roadList.get(n));
+        }
     }
 
     @Override
@@ -232,15 +274,62 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
         }
     }
-
+    public void throwToPastPoint(int point){
+        pastPoint.add(listOfPoint.get(point));
+        listOfPoint.remove(point);
+    }
     private void updateLatestLocation() {
         if (arOverlayView !=null && location != null) {
             arOverlayView.updateCurrentLocation(location);
             tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n",
                     location.getLatitude(), location.getLongitude(), location.getAltitude()));
         }
+        if ( listOfPoint.isEmpty() == false ) {
+            if (isNearToHere(new ARPoint("here", location.getLatitude(),
+                    location.getLongitude(), location.getAltitude()), listOfPoint.get(0)) == true) {
+                throwToPastPoint(0);
+            }
+        }
+    }
+    // This function converts decimal degrees to radians
+    private static double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+    // This function converts radians to decimal degrees
+    private static double rad2deg(double rad) {
+
+        return (rad * 180 / Math.PI);
+
+    }
+    // 지점 간 거리 반환
+    public double getDistance(double lat1, double lon1, double lat2, double lon2) {
+
+        double theta = lon1 - lon2;
+
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+
+        dist = dist * 60 * 1.1515 * 1609.344;
+
+        return dist;
+
     }
 
+    public void drawDirection(){
+        dirImg.setVisibility(View.VISIBLE);
+    }
+
+    public boolean isNearToHere(ARPoint from, ARPoint to){
+        Double distance = getDistance(from.getLocation().getLatitude(), from.getLocation().getLongitude(),
+                to.getLocation().getLatitude(), to.getLocation().getLongitude());
+        Toast.makeText(getApplicationContext(), distance.toString(), Toast.LENGTH_LONG).show();
+        if ( distance <= 10) {
+            return true;
+        }
+        return false;
+    }
     @Override
     public void onLocationChanged(Location location) {
         updateLatestLocation();
@@ -250,6 +339,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     public void onStatusChanged(String s, int i, Bundle bundle) {
 
     }
+
 
     @Override
     public void onProviderEnabled(String s) {

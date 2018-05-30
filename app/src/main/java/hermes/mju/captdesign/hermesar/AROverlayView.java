@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.opengl.Matrix;
@@ -11,6 +12,11 @@ import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.Math.PI;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 
 /**
  * Created by mju4 on 2018-05-01.
@@ -24,6 +30,8 @@ public class AROverlayView extends View {
     private Location currentLocation;
     private List<ARPoint> arPoints;
 
+    private float pointx[]= new float[100];
+    private float pointy[]= new float[100];
 
     public AROverlayView(Context context) {
         super(context);
@@ -83,6 +91,7 @@ public class AROverlayView extends View {
 
         for (int i = 0; i < 1; i ++) {
         //for (int i = 0; i < arPoints.size(); i ++) {
+            arPoints.get(i).getLocation().setAltitude(currentLocation.getAltitude());
             float[] currentLocationInECEF = LocationHelper.WSG84toECEF(currentLocation);
             float[] pointInECEF = LocationHelper.WSG84toECEF(arPoints.get(i).getLocation());
             float[] pointInENU = LocationHelper.ECEFtoENU(currentLocation, currentLocationInECEF, pointInECEF);
@@ -95,10 +104,51 @@ public class AROverlayView extends View {
             if (cameraCoordinateVector[2] < 0) {
                 float x  = (0.5f + cameraCoordinateVector[0]/cameraCoordinateVector[3]) * canvas.getWidth();
                 float y = (0.5f - cameraCoordinateVector[1]/cameraCoordinateVector[3]) * canvas.getHeight();
-
-                canvas.drawCircle(x, y, radius, paint);
-                canvas.drawText(arPoints.get(i).getName(), x - (30 * arPoints.get(i).getName().length() / 2), y - 80, paint);
+                pointx[i]=x;
+                pointy[i]=y;
+            } else {
+                drawDirection();
             }
         }
+        for(int i = 0; i < arPoints.size(); i ++) {
+            drawArrow(paint, canvas, pointx[i], pointy[i], pointx[i + 1], pointy[i + 1]);
+
+            //기존에 있던 ARpoint마다 점 찍던것
+            //canvas.drawCircle(pointx[i], pointy[i], radius, paint);
+            //canvas.drawText(arPoints.get(i).getName(), pointx[i] - (30 * arPoints.get(i).getName().length() / 2), pointy[i] - 80, paint);
+        }
+        //tha line
+        for(int i = 0; i < arPoints.size()-1; i ++) {
+            canvas.drawLine(pointx[i], pointy[i], pointx[i + 1], pointy[i + 1],paint);
+        }
+
     }
+    private void drawDirection(){
+        ((ARActivity)context).drawDirection();
+    }
+    private void drawArrow(Paint paint, Canvas canvas, float from_x, float from_y, float to_x, float to_y)
+    {
+        float angle,anglerad, radius, lineangle;
+
+        //values to change for other appearance *CHANGE THESE FOR OTHER SIZE ARROWHEADS*
+        radius=110;
+        angle=115;
+
+        //some angle calculations
+        anglerad= (float) (PI*angle/180.0f);
+        lineangle= (float) (atan2(to_y-from_y,to_x-from_x));
+
+        //tha triangle
+        Path path = new Path();
+        path.setFillType(Path.FillType.EVEN_ODD);
+        path.moveTo(to_x, to_y);
+        path.lineTo((float)(to_x-radius*cos(lineangle - (anglerad / 2.0))),
+                (float)(to_y-radius*sin(lineangle - (anglerad / 2.0))));
+        path.lineTo((float)(to_x-radius*cos(lineangle + (anglerad / 2.0))),
+                (float)(to_y-radius*sin(lineangle + (anglerad / 2.0))));
+        path.close();
+        canvas.drawPath(path, paint);
+    }
+
+
 }
