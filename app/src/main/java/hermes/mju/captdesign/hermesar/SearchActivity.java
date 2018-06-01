@@ -1,8 +1,16 @@
+
 package hermes.mju.captdesign.hermesar;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -11,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapPOIItem;
@@ -26,6 +35,12 @@ public class SearchActivity extends AppCompatActivity {
 
     SearchAdapter adapter;
     ArrayList<POI> arrayPOI;
+
+    Intent intent;
+    SpeechRecognizer mRecognizer;
+    TextView textView;
+    TextView searchView;
+    private final int MY_PERMISSIONS_RECORD_AUDIO = 1;
 
     public static class POI {
         public String name;
@@ -48,6 +63,36 @@ public class SearchActivity extends AppCompatActivity {
         adapter = new SearchAdapter();
         arrayPOI = new ArrayList<>();
         lvSearch.setAdapter(adapter);
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.RECORD_AUDIO)) {
+
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO}, MY_PERMISSIONS_RECORD_AUDIO
+                );
+            }
+        }
+
+        //음성검색
+        intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
+        mRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        mRecognizer.setRecognitionListener(recognitionListener);
+        searchView = (TextView) findViewById(R.id.editSearch);
+        textView = (TextView) findViewById(R.id.textView);
+        Button button = (Button) findViewById(R.id.voiceSearch);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mRecognizer.startListening(intent);
+            }
+        });
+
 
         lvSearch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -117,4 +162,56 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
     }
+    //음성검색 함수
+    private RecognitionListener recognitionListener = new RecognitionListener() {
+        @Override
+        public void onReadyForSpeech(Bundle bundle) {
+        }
+
+        @Override
+        public void onBeginningOfSpeech() {
+        }
+
+        @Override
+        public void onRmsChanged(float v) {
+        }
+
+        @Override
+        public void onBufferReceived(byte[] bytes) {
+
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+
+        }
+
+        @Override
+        public void onError(int i) {
+            textView.setText("다시 말해주세요.");
+
+        }
+
+        @Override
+        public void onResults(Bundle bundle) {
+            String key = "";
+            key = SpeechRecognizer.RESULTS_RECOGNITION;
+            ArrayList<String> mResult = bundle.getStringArrayList(key);
+
+            String[] rs = new String[mResult.size()];
+            mResult.toArray(rs);
+
+            searchView.setText(rs[0]);
+            textView.setText(rs[0]);
+            btnSearch.performClick();
+        }
+
+        @Override
+        public void onPartialResults(Bundle bundle) {
+        }
+
+        @Override
+        public void onEvent(int i, Bundle bundle) {
+        }
+    };
 }
