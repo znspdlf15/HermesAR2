@@ -88,40 +88,41 @@ public class AROverlayView extends View {
         paint.setColor(Color.WHITE);
         paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
         paint.setTextSize(60);
+        if ( arPoints.size() > 0 ) {
+            for (int i = 0; i < 1; i++) {
+                //for (int i = 0; i < arPoints.size(); i ++) {
+                arPoints.get(i).getLocation().setAltitude(currentLocation.getAltitude());
+                float[] currentLocationInECEF = LocationHelper.WSG84toECEF(currentLocation);
+                float[] pointInECEF = LocationHelper.WSG84toECEF(arPoints.get(i).getLocation());
+                float[] pointInENU = LocationHelper.ECEFtoENU(currentLocation, currentLocationInECEF, pointInECEF);
 
-        for (int i = 0; i < 1; i ++) {
-        //for (int i = 0; i < arPoints.size(); i ++) {
-            arPoints.get(i).getLocation().setAltitude(currentLocation.getAltitude());
-            float[] currentLocationInECEF = LocationHelper.WSG84toECEF(currentLocation);
-            float[] pointInECEF = LocationHelper.WSG84toECEF(arPoints.get(i).getLocation());
-            float[] pointInENU = LocationHelper.ECEFtoENU(currentLocation, currentLocationInECEF, pointInECEF);
+                float[] cameraCoordinateVector = new float[4];
+                Matrix.multiplyMV(cameraCoordinateVector, 0, rotatedProjectionMatrix, 0, pointInENU, 0);
 
-            float[] cameraCoordinateVector = new float[4];
-            Matrix.multiplyMV(cameraCoordinateVector, 0, rotatedProjectionMatrix, 0, pointInENU, 0);
-
-            // cameraCoordinateVector[2] is z, that always less than 0 to display on right position
-            // if z > 0, the point will display on the opposite
-            if (cameraCoordinateVector[2] < 0) {
-                float x  = (0.5f + cameraCoordinateVector[0]/cameraCoordinateVector[3]) * canvas.getWidth();
-                float y = (0.5f - cameraCoordinateVector[1]/cameraCoordinateVector[3]) * canvas.getHeight();
-                pointx[i]=x;
-                pointy[i]=y;
-            } else {
-                drawDirection();
+                // cameraCoordinateVector[2] is z, that always less than 0 to display on right position
+                // if z > 0, the point will display on the opposite
+                if (cameraCoordinateVector[2] < 0) {
+                    float x = (0.5f + cameraCoordinateVector[0] / cameraCoordinateVector[3]) * canvas.getWidth();
+                    float y = (0.5f - cameraCoordinateVector[1] / cameraCoordinateVector[3]) * canvas.getHeight();
+                    pointx[i] = x;
+                    pointy[i] = y;
+                } else {
+                    //drawDirection();
+                }
             }
-        }
-        for(int i = 0; i < arPoints.size(); i ++) {
-            drawArrow(paint, canvas, pointx[i], pointy[i], pointx[i + 1], pointy[i + 1]);
 
-            //기존에 있던 ARpoint마다 점 찍던것
-            //canvas.drawCircle(pointx[i], pointy[i], radius, paint);
-            //canvas.drawText(arPoints.get(i).getName(), pointx[i] - (30 * arPoints.get(i).getName().length() / 2), pointy[i] - 80, paint);
+//        for(int i = 0; i < arPoints.size(); i ++) {
+//            drawArrow(paint, canvas, pointx[i], pointy[i], pointx[i + 1], pointy[i + 1]);
+//
+//            //기존에 있던 ARpoint마다 점 찍던것
+//            //canvas.drawCircle(pointx[i], pointy[i], radius, paint);
+//            //canvas.drawText(arPoints.get(i).getName(), pointx[i] - (30 * arPoints.get(i).getName().length() / 2), pointy[i] - 80, paint);
+//        }
+//        //tha line
+//        for(int i = 0; i < arPoints.size()-1; i ++) {
+//            canvas.drawLine(pointx[i], pointy[i], pointx[i + 1], pointy[i + 1],paint);
+//        }
         }
-        //tha line
-        for(int i = 0; i < arPoints.size()-1; i ++) {
-            canvas.drawLine(pointx[i], pointy[i], pointx[i + 1], pointy[i + 1],paint);
-        }
-
     }
     private void drawDirection(){
         ((ARActivity)context).drawDirection();

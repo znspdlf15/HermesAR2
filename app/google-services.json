@@ -1,0 +1,59 @@
+{
+  "project_info": {
+    "project_number": "802459610505",
+    "firebase_url": "https://hermes-f3d56.firebaseio.com",
+    "project_id": "hermes-f3d56",
+    "storage_bucket": "hermes-f3d56.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802459610505:android:bce847f28329ceec",
+        "android_client_info": {
+          "package_name": "hermes.mju.captdesign.hermesar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "802459610505-ko2f2gf4fn1fd7tsbnc82e6kapsuhcmd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "hermes.mju.captdesign.hermesar",
+            "certificate_hash": "79e8d9d9bc524e5651334b3608aa502fc88170c0"
+          }
+        },
+        {
+          "client_id": "802459610505-p3j63pnva69t50vg8aaup5qehqgn0cgi.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "802459610505-p3j63pnva69t50vg8aaup5qehqgn0cgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAV0CI0TyKjFu3K-9vUE6i-tqM8Chkzcgo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "802459610505-p3j63pnva69t50vg8aaup5qehqgn0cgi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
