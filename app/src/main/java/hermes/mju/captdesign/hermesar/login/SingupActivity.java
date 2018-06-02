@@ -1,4 +1,4 @@
-package hermes.mju.captdesign.hermesar;
+package hermes.mju.captdesign.hermesar.login;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -17,7 +17,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-import hermes.mju.captdesign.hermesar.login.LoginActivity;
+import hermes.mju.captdesign.hermesar.MainActivity;
+import hermes.mju.captdesign.hermesar.R;
 
 public class SingupActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -84,7 +85,7 @@ public class SingupActivity extends AppCompatActivity implements View.OnClickLis
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
                         } else {
                             //에러발생시
-                            Toast.makeText(LoginActivity.SingupActivity.this, "등록 에러!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(SingupActivity.this, "등록 에러!", Toast.LENGTH_SHORT).show();
                         }
                         progressDialog.dismiss();
                     }

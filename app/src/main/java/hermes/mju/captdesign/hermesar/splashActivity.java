@@ -9,6 +9,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import hermes.mju.captdesign.hermesar.login.LoginActivity;
+
 public class splashActivity extends AppCompatActivity {
 
     @Override
@@ -38,7 +40,7 @@ public class splashActivity extends AppCompatActivity {
     }
 
     public void AppStart(){
-        startActivity(new Intent(this, MainActivity.class));
+        startActivity(new Intent(this, LoginActivity.class));
         finish();
     }
 }

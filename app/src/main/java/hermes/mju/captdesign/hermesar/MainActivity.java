@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +15,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.skt.Tmap.TMapGpsManager;
 import com.skt.Tmap.TMapPoint;
 import com.skt.Tmap.TMapPolyLine;
@@ -33,19 +37,13 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-    private Button loginButton;
+    private Button StartButton;
+    private TextView textViewUserEmail;
 
-    private Context mContext = null;
-    private boolean m_bTrackingMode = true;
+    private FirebaseAuth mAuth;
+    private FirebaseUser user;
 
-    private LocationManager mlocationManage;
 
-    private TMapGpsManager tmapgps = null;
-    private TMapView tmapview = null;
-    private static String mApiKey = "b8758f45-a63e-46a6-a68d-14011fb031f7"; // 발급받은 appKey
-    private static int mMarkerID;
-    private ArrayList<TMapPoint> m_tmapPoint = new ArrayList<TMapPoint>();
-    private ArrayList<String> mArrayMarkerID = new ArrayList<String>();
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
@@ -54,12 +52,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        loginButton = (Button)findViewById(R.id.LoginButton);
-        loginButton.setOnClickListener(this);
+        mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
+        if (user != null) {
+            // Name, email address, and profile photo Url
+            String name = user.getDisplayName();
+            String email = user.getEmail();
+            Uri photoUrl = user.getPhotoUrl();
+
+            // Check if user's email is verified
+            boolean emailVerified = user.isEmailVerified();
+
+            // The user's ID, unique to the Firebase project. Do NOT use this value to
+            // authenticate with your backend server, if you have one. Use
+            // FirebaseUser.getToken() instead.
+            String uid = user.getUid();
+        }
+        textViewUserEmail = (TextView) findViewById(R.id.LoginSucce);
+        textViewUserEmail.setText("반갑습니다.\n"+ user.getEmail()+"으로 로그인 하였습니다.");
+
+
+        StartButton = (Button)findViewById(R.id.StartButton);
+        StartButton.setOnClickListener(this);
     }
 
     public void onClick(View view) {
-        if(view == loginButton){
+        if(view == StartButton){
             startActivity(new Intent(this, HermesActivity.class));
         }
     }

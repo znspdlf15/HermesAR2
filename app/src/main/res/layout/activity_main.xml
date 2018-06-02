@@ -37,28 +37,22 @@
         android:orientation="vertical">
 
 
-        <EditText
-            android:layout_width="100dp"
+        <TextView
+            android:id="@+id/LoginSucce"
+            android:layout_width="400dp"
             android:layout_height="1dp"
             android:layout_weight="1"
             android:ems="10"
-            android:inputType="textPassword" />
+            android:inputType="text" />
 
-
-        <EditText
-            android:layout_width="100dp"
-            android:layout_height="14dp"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="textPassword" />
 
         <Button
-            android:id="@+id/LoginButton"
+            android:id="@+id/StartButton"
             android:layout_height="50dp"
             android:layout_width="100dp"
             android:layout_weight="1"
             android:gravity="center_vertical"
-            android:text="로그인(실행)"/>
+            android:text="실행"/>
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
