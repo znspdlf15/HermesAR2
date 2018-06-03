@@ -52,7 +52,10 @@
 
         <activity android:name=".login.LoginActivity" />
         <activity android:name=".login.SingupActivity" />
-        <activity android:name=".login.PwdfindActivity"></activity>
+        <activity android:name=".login.PwdfindActivity" />
+        <activity android:name=".Mainitem.FavoriteActivity" />
+        <activity android:name=".Mainitem.SettingActivity" />
+        <activity android:name=".Mainitem.LastestActivity"></activity>
     </application>
 
 </manifest>

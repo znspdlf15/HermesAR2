@@ -5,54 +5,54 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="hermes.mju.captdesign.hermesar.MainActivity">
-
-
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/mainView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <LinearLayout
-            android:id="@+id/mapview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@android:color/white"
-            android:orientation="vertical">
-
-
-        </LinearLayout>
-
-    </LinearLayout>
+    
+    <TextView
+        android:id="@+id/LoginSucce"
+        android:layout_width="400dp"
+        android:layout_height="1dp"
+        android:layout_weight="1"
+        android:ems="10"
+        android:inputType="text" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:gravity="center"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
 
-        <TextView
-            android:id="@+id/LoginSucce"
-            android:layout_width="400dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="text" />
-
-
-        <Button
+        <ImageButton
             android:id="@+id/StartButton"
             android:layout_height="50dp"
             android:layout_width="100dp"
             android:layout_weight="1"
-            android:gravity="center_vertical"
+            android:src="@drawable/main_ic_ar"
             android:text="실행"/>
+
+        <ImageButton
+            android:id="@+id/lastestButton"
+            android:layout_height="50dp"
+            android:layout_width="100dp"
+            android:layout_weight="1"
+            android:src="@drawable/main_ic_lastest"
+            android:text="최근검색"/>
+
+        <ImageButton
+            android:id="@+id/favButton"
+            android:layout_height="50dp"
+            android:layout_width="100dp"
+            android:layout_weight="1"
+            android:src="@drawable/main_ic_favorit"
+            android:text="즐겨찾기"/>
+
+        <ImageButton
+            android:id="@+id/OptionButton"
+            android:layout_height="50dp"
+            android:layout_width="100dp"
+            android:layout_weight="1"
+            android:src="@drawable/main_ic_map"
+            android:text="설정"/>
+
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

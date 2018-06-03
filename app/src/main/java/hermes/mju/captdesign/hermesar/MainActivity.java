@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -35,10 +36,18 @@ import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import hermes.mju.captdesign.hermesar.Mainitem.FavoriteActivity;
+import hermes.mju.captdesign.hermesar.Mainitem.LastestActivity;
+import hermes.mju.captdesign.hermesar.Mainitem.SettingActivity;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-    private Button StartButton;
     private TextView textViewUserEmail;
+
+    private ImageButton StartButton;
+    private ImageButton lastestButton;
+    private ImageButton favButton;
+    private ImageButton OptionButton;
 
     private FirebaseAuth mAuth;
     private FirebaseUser user;
@@ -69,16 +78,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String uid = user.getUid();
         }
         textViewUserEmail = (TextView) findViewById(R.id.LoginSucce);
+
         textViewUserEmail.setText("반갑습니다.\n"+ user.getEmail()+"으로 로그인 하였습니다.");
 
 
-        StartButton = (Button)findViewById(R.id.StartButton);
+        StartButton = (ImageButton)findViewById(R.id.StartButton);
+        lastestButton = (ImageButton)findViewById(R.id.lastestButton);
+        favButton = (ImageButton)findViewById(R.id.favButton);
+        OptionButton = (ImageButton)findViewById(R.id.OptionButton);
+
         StartButton.setOnClickListener(this);
+        lastestButton.setOnClickListener(this);
+        favButton.setOnClickListener(this);
+        OptionButton.setOnClickListener(this);
+
     }
 
     public void onClick(View view) {
         if(view == StartButton){
             startActivity(new Intent(this, HermesActivity.class));
+        }
+        if(view == favButton){
+            startActivity(new Intent(this, FavoriteActivity.class));
+        }
+        if(view == lastestButton){
+            startActivity(new Intent(this, LastestActivity.class));
+        }
+        if(view == OptionButton){
+            startActivity(new Intent(this, SettingActivity.class));
         }
     }
 
