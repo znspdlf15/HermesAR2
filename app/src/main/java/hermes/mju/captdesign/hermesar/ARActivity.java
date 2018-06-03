@@ -42,6 +42,7 @@ import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Point;
 import com.google.ar.core.PointCloud;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
@@ -164,6 +165,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         installRequested = false;
+
     }
 
     // 읽어온 리스트를 listOfPoint로 복사.
@@ -535,7 +537,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
         // Prepare the other rendering objects.
         try {
-            virtualObject.createOnGlThread(/*context=*/ this, "andy.obj", "andy.png");
+            virtualObject.createOnGlThread(/*context=*/ this, "direction_img.obj", "directionImg.png");
             virtualObject.setMaterialProperties(0.0f, 3.5f, 1.0f, 6.0f);
 
             virtualObjectShadow.createOnGlThread(/*context=*/ this, "andy_shadow.obj", "andy_shadow.png");
@@ -558,6 +560,48 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         GLES20.glViewport(0, 0, width, height);
     }
 
+    public void makeAnchor(Frame frame){
+        try {
+            /*if (anchors.size() >= 1) {
+                anchors.get(0).detach();
+                anchors.remove(0);
+            } else {
+                anchors.add(session.createAnchor(frame.getCamera().getPose().compose(Pose.makeTranslation(0, 0, -1f).extractTranslation())));
+            }*/
+            if ( listOfPoint.size() > 0 ) {
+                if (anchors.size() < 1) {
+                    float[] aa = new float[4];
+                    /*aa[0] = (float)(listOfPoint.get(0).getLocation().getLongitude() - location.getLongitude());
+                    aa[1] = (float)(listOfPoint.get(0).getLocation().getLatitude() - location.getLatitude());
+                    aa[2] = 1f;*/
+                    aa[0] = -1f;
+                    aa[1] = 0;
+                    aa[2] = 0;
+                    aa[3] = 1;
+                    Pose pose = frame.getCamera().getPose().compose(Pose.makeRotation(aa).extractRotation());
+                    pose = new Pose(frame.getCamera().getPose().makeTranslation(0, -1f, -2f).getTranslation(), aa);
+
+                    Anchor anchor = session.createAnchor(pose);
+                    anchors.add(anchor);
+                } else {
+                    float[] aa = new float[3];
+                    /*aa[0] = (float)(listOfPoint.get(0).getLocation().getLongitude() - location.getLongitude());
+                    aa[1] = (float)(listOfPoint.get(0).getLocation().getLatitude() - location.getLatitude());
+                    aa[2] = 1f;*/
+                    aa[0] = 100;
+                    aa[1] = 100;
+                    aa[2] = 90;
+
+                    //anchors.get(0).getPose().rotateVector(aa);
+                }
+            }
+
+            } catch (Throwable t) {
+                // Avoid crashing the application due to unhandled exceptions.
+                Log.e(TAG, "Exception on the OpenGL thread", t);
+        }
+    }
+
     @Override
     public void onDrawFrame(GL10 gl10) {
 // Clear screen to notify driver it should not load any pixels from previous frame.
@@ -578,6 +622,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             // camera framerate.
             Frame frame = session.update();
             com.google.ar.core.Camera camera = frame.getCamera();
+
+            makeAnchor(frame);
 
             // Handle taps. Handling only one tap per frame, as taps are usually low frequency
             // compared to frame rate.
@@ -608,6 +654,10 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                     }
                 }
             }*/
+
+
+
+
 
             // Draw background.
             backgroundRenderer.draw(frame);
