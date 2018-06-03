@@ -30,6 +30,37 @@
 
     </LinearLayout>
 
+    <Button
+        android:id="@+id/compass"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="49dp"
+        android:layout_height="49dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:text="방향"
+        app:layout_constraintEnd_toEndOf="@+id/mainView"
+        app:layout_constraintTop_toBottomOf="@+id/zoomout" />
+
+    <Button
+        android:id="@+id/zoomin"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="49dp"
+        android:layout_height="49dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:text="+"
+        app:layout_constraintEnd_toEndOf="@+id/mainView"
+        app:layout_constraintTop_toBottomOf="@+id/startButton" />
+
+    <Button
+        android:id="@+id/zoomout"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="49dp"
+        android:layout_height="49dp"
+        android:layout_marginEnd="16dp"
+        android:text="-"
+        app:layout_constraintEnd_toEndOf="@+id/mainView"
+        app:layout_constraintTop_toBottomOf="@+id/zoomin" />
 
     <Button
         android:id="@+id/ARbutton"

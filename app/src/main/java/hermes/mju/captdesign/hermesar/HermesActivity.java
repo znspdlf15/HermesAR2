@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.sql.Time;
 import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,13 +41,16 @@ import javax.xml.parsers.ParserConfigurationException;
  * Created by Tak on 2018-05-09.
  */
 
-public class HermesActivity extends Activity implements TMapGpsManager.onLocationChangedCallback, View.OnClickListener, TMapView.OnLongClickListenerCallback {
+public class HermesActivity extends Activity implements TMapGpsManager.onLocationChangedCallback, View.OnClickListener, TMapView.OnLongClickListenerCallback,TMapView.OnClickListenerCallback ,TMapView.OnDisableScrollWithZoomLevelCallback{
     /* 버튼 */
     private Button arButton;
     private Button desButton;
     private Button startButton;
     private Button currentButton;
     private Button searchButton;
+    private Button zoominButton;
+    private Button zoomoutButton;
+    private Button compassButton;
 
     // 좌표
     private TMapPoint startpoint;
@@ -75,7 +79,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     private boolean m_bTrackingMode = true;
 
     final ArrayList<ARPoint> listOfPoint = new ArrayList<ARPoint>(); // 시작점 부터 도착점까지 좌표 체크 리스트
-
+    
     private Context mContext = null;
 
     private LocationManager mlocationManager;
@@ -87,7 +91,12 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     private TMapData tmapdata;
 
+    private String time;
+    private String distance;
+    private String min;
+    private String sec;
 
+    private boolean compass_mode= false;
 
     public void initButton(){
         arButton =  (Button)findViewById(R.id.ARbutton);
@@ -95,6 +104,9 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         startButton =  (Button)findViewById(R.id.startButton);
         currentButton =  (Button)findViewById(R.id.CurrentButton);
         searchButton = (Button)findViewById(R.id.SearchButton);
+        zoominButton = (Button)findViewById(R.id.zoomin);
+        zoomoutButton = (Button)findViewById(R.id.zoomout);
+        compassButton = (Button)findViewById(R.id.compass);
 
 
         arButton.setOnClickListener(this);
@@ -102,6 +114,9 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         startButton.setOnClickListener(this);
         currentButton.setOnClickListener(this);
         searchButton.setOnClickListener(this);
+        zoominButton.setOnClickListener(this);
+        zoomoutButton.setOnClickListener(this);
+        compassButton.setOnClickListener(this);
 
     }
     protected void onCreate(Bundle savedInstanceState){
@@ -116,6 +131,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         //위치 변경
         tmapgps.setMinTime(1);
         tmapgps.setMinDistance(5);
+        //map.ctrl_nav.disableZoomWheel(); //지도 확대축소 기능을 막습니다.
         // 지도 띄우기 반드시 initTmap을 먼저해야한다.
         initTmap();
 
@@ -136,7 +152,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     public void onLocationChange(Location location) {
         if(pathing==true) {
             Nowpoint = tmapgps.getLocation();
-            tmapview.setCompassMode(true);
+            //tmapview.setCompassMode(true);
             tmapview.setIconVisibility(true);
             tmapview.setLocationPoint( Nowpoint.getLatitude(),Nowpoint.getLongitude());
             re_findPath(Nowpoint);
@@ -166,7 +182,9 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         tmapview.setSKTMapApiKey(mApiKey);
 
         /* 현재 보는 방향 */
-        tmapview.setCompassMode(true);
+        //tmapview.setCompassMode(true);
+        //tmapview.setUserScrollZoomEnable(true);
+
 
         /* 현위치 아이콘표시 */
         tmapview.setIconVisibility(true);
@@ -179,7 +197,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
         /*  화면중심을 단말의 현재위치로 이동 */
         tmapview.setTrackingMode(true);
-        tmapview.setSightVisible(true);
+        tmapview.setSightVisible(false);
 
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -244,6 +262,9 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
             //listOfPoint를 ARActivity로 넘기는 작업
             Intent intent = new Intent(this,ARActivity.class);
             intent.putExtra("listOfPoint", listOfPoint);
+            //출발지-목적지간의 시간,거리
+            intent.putExtra("Time",min);
+            intent.putExtra("Distance",distance);
             startActivity(intent);
         }
         //현재 위치 버튼 클릭 시
@@ -260,9 +281,27 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         if(view == desButton){
             TmapSetDestination();
         }
-
+        // 검색 버튼 클릭 시
         if(view == searchButton){
             gotoSearch();
+        }
+        // + 버튼 클릭 시
+        if(view == zoominButton){
+            tmapview.MapZoomIn();
+        }
+        // - 버튼 클릭 시
+        if(view == zoomoutButton){
+            tmapview.MapZoomOut();
+        }
+        // 방향  버튼 클릭 시
+        if(view == compassButton){
+            if(compass_mode==false){
+                TmapCurrent();
+                compassOn();
+            }else if(compass_mode==true){
+                TmapCurrent();
+                compassOff();
+            }
         }
     }
 
@@ -296,6 +335,20 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     public void gotoSearch(){
         startActivity(new Intent(this, SearchActivity.class));
     }
+
+    //방향 버튼 클릭시 나침반모드,시야표출 활성화, 비활성화
+    public void compassOn(){
+        tmapview.setCompassMode(true);
+        tmapview.setSightVisible(true);
+        compass_mode=true;
+    }
+    public void compassOff(){
+        tmapview.setCompassMode(false);
+        tmapview.setSightVisible(false);
+        compass_mode=false;
+
+    }
+
     public void findAllCoordinates(){
         listOfPoint.clear();
         tmapdata.findPathDataAllType(TMapData.TMapPathType.PEDESTRIAN_PATH, startpoint, endpoint, new TMapData.FindPathDataAllListenerCallback() {
@@ -303,14 +356,21 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
             public void onFindPathDataAll(Document document) {
                 Element root = document.getDocumentElement();
                 NodeList nodeListPlacemark = root.getElementsByTagName("Placemark");
-                for( int i=0; i<nodeListPlacemark.getLength(); i++ ) {
-                    NodeList nodeListPlacemarkItem = nodeListPlacemark.item(i).getChildNodes();
-                    for( int j=0; j<nodeListPlacemarkItem.getLength(); j++ ) {
 
-                        if( nodeListPlacemarkItem.item(j).getNodeName().equals("LineString") ) {
+                NodeList disPlacemark = root.getElementsByTagName("tmap:totalDistance");    //출발지-목적지까지의 거리
+                distance = disPlacemark.item(0).getTextContent();
+                NodeList timePlacemark = root.getElementsByTagName("tmap:totalTime");       //출발지-목적지까지의 시간
+                time = timePlacemark.item(0).getTextContent();
+                addTimeDistance();
+
+                for (int i = 0; i < nodeListPlacemark.getLength(); i++) {
+                    NodeList nodeListPlacemarkItem = nodeListPlacemark.item(i).getChildNodes();
+                    for (int j = 0; j < nodeListPlacemarkItem.getLength(); j++) {
+
+                        if (nodeListPlacemarkItem.item(j).getNodeName().equals("LineString")) {
                             NodeList nl = nodeListPlacemarkItem.item(j).getChildNodes();
-                            for( int k=0; k<nl.getLength(); k++ ) {
-                                if ( nl.item(k).getNodeName().equals("coordinates")) {
+                            for (int k = 0; k < nl.getLength(); k++) {
+                                if (nl.item(k).getNodeName().equals("coordinates")) {
                                     addARPoints(nl.item(k).getTextContent());
                                     //LineNodeList.addToNode(nl.item(k));
                                     Log.d("debug", nl.item(k).getTextContent());
@@ -331,9 +391,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         for ( Integer i = 0; i < temp.length; i++){
             String[] temp2 = temp[i].split(",");    // ,로 경도 위도 분리
             listOfPoint.add(new ARPoint(i.toString(), Double.parseDouble(temp2[1]), Double.parseDouble(temp2[0]), nowAltitude));    // 일단 현재 고도로 설정함
-
         }
-
        /* if ( temp2.length == 2 ) {
             listOfPoint.add(new ARPoint(index.toString(), Double.parseDouble(temp2[0]), Double.parseDouble(temp2[1]), 210));
         } else if ( temp2.length == 4){
@@ -342,11 +400,31 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         }*/
     }
 
+    //출발지-목적지 까지의 소요시간 및 거리 전달
+    public void addTimeDistance(){
+        Intent dt = new Intent(this,ARActivity.class);
+        int i_time = Integer.parseInt(time);
+        int minute =i_time/60;
+        int second =i_time%60;
+        min = Integer.toString(minute);
+        sec = Integer.toString(second);
+        min = min + "분 " + sec +"초";
+        distance = distance + "m";
+    }
 
     // 뒤로가기 버튼 클릭시
     public void onBackPressed(){
         // 로그인하면 main activity로 돌아가지 못하게 막기. 추후에 로그아웃 등으로 기능을 바꿔야함
     }
+
+    @Override
+    public boolean onPressUpEvent(ArrayList<TMapMarkerItem> arrayList, ArrayList<TMapPOIItem> arrayList1, TMapPoint tMapPoint, PointF pointF) {
+        return false;
+    }
+    public boolean onPressEvent(ArrayList markerlist, ArrayList poilist, TMapPoint point, PointF pointf) {
+        return false;
+    }
+
 
     // 일단 임시로.
     @Override
@@ -404,6 +482,14 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
             findPath();
         }
     }
+
+    @Override
+    public void onDisableScrollWithZoomLevelEvent(float v, TMapPoint tMapPoint) {
+        if(compass_mode==true) {
+          compassOn();
+        }
+    }
+
 
     // 클릭해서 popup을 띄우고 싶은데, 이러면 화면 확대 축소할때도 떠서 일단 LongClick에다 popup을 띄우기로 함.
     // 추후 수정.

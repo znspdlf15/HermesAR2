@@ -52,6 +52,7 @@ import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
 import java.io.IOException;
+import java.sql.Time;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -117,6 +118,11 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     ArrayList<ARPoint> roadList; // 읽어온 리스트
     ArrayList<ARPoint> listOfPoint; // 좌표 리스트
     ArrayList<ARPoint> pastPoint; // 이미 지난 포인트.
+
+
+    private String time;
+    private String distance;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -148,6 +154,14 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         //listOfPoint 받아오는 작업
         Intent intent = getIntent();
         roadList = (ArrayList<ARPoint>)intent.getSerializableExtra("listOfPoint");
+
+        //출발지-목적지 간의 거리,시간 받아오는 작업
+        distance = (String)intent.getSerializableExtra("Distance");
+        time = (String)intent.getSerializableExtra("Time");
+
+
+
+
         listOfPoint = new ArrayList<ARPoint>();
         pastPoint = new ArrayList<ARPoint>();
         copyList();
@@ -452,8 +466,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     private void updateLatestLocation() {
         if (arOverlayView !=null && location != null) {
             arOverlayView.updateCurrentLocation(location);
-            tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n",
-                    location.getLatitude(), location.getLongitude(), location.getAltitude()));
+            //tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n" , location.getLatitude(), location.getLongitude(), location.getAltitude()));
+            tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n예상 소요시간: %s \n총 이동거리: %s\n" , location.getLatitude(), location.getLongitude(), location.getAltitude(), time, distance));
 
 
             if (listOfPoint.isEmpty() == false) {
