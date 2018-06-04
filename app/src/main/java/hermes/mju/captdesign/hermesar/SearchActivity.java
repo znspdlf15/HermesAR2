@@ -140,7 +140,7 @@ public class SearchActivity extends AppCompatActivity {
                                     for(int i=0; i<arrayList.size(); i++) {
                                         TMapPOIItem poiItem = arrayList.get(i);
 
-                                        String secondLine = poiItem.upperBizName+"/"+poiItem.middleBizName+"/"+poiItem.lowerBizName+"/"+poiItem.detailBizName;
+                                        String secondLine = poiItem.upperBizName+"/"+poiItem.middleBizName+"/"+poiItem.lowerBizName;
                                         adapter.addItem(poiItem.getPOIName(), secondLine);
 
                                         POI poi = new POI();

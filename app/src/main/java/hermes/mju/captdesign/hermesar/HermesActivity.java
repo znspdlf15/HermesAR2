@@ -456,6 +456,10 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
                 makePoint(resultCode);
                 break;
             case 3:
+
+                if((data.getSerializableExtra("LAT")) == null || (data.getSerializableExtra("LON") == null) ){
+                  break;  // 에러처리
+                }
                 endpoint.setLatitude((double)data.getSerializableExtra("LAT"));
                 endpoint.setLongitude((double)data.getSerializableExtra("LON"));
                 TMapMarkerItem tItem2 = new TMapMarkerItem();
