@@ -6,4 +6,19 @@
     android:layout_height="match_parent"
     tools:context="hermes.mju.captdesign.hermesar.Mainitem.FavoriteActivity">
 
+
+
+
+    <ListView
+        android:id="@+id/lvFavorite"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="80dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2"></ListView>
+
 </android.support.constraint.ConstraintLayout>
