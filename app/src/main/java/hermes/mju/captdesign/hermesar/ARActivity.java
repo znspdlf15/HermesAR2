@@ -607,6 +607,41 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         GLES20.glViewport(0, 0, width, height);
     }
 
+    // 건들지 말것.
+    public Quaternion EulerToQuat(float roll, float pitch, float yaw)  {
+
+        float cr, cp, cy, sr, sp, sy, cpcy, spsy;
+        Quaternion quat = new Quaternion();
+        float r = (float)Math.toRadians(roll);
+        float p = (float)Math.toRadians(pitch);
+        float y = (float)Math.toRadians(yaw);
+        // calculate trig identities
+
+        cr = (float)Math.cos(r/2);
+        cp = (float)Math.cos(p/2);
+
+        cy = (float)Math.cos(y/2);
+        sr = (float)Math.sin(r/2);
+
+        sp = (float)Math.sin(p/2);
+
+        sy = (float)Math.sin(y/2);
+
+        cpcy = cp * cy;
+
+        spsy = sp * sy;
+
+        quat.w = cr * cpcy + sr * spsy;
+
+        quat.x = sr * cpcy - cr * spsy;
+
+        quat.y = cr * sp * cy + sr * cp * sy;
+
+        quat.z = cr * cp * sy - sr * sp * cy;
+
+        return quat;
+    }
+
     public void makeAnchor(Frame frame){
         try {
             /*if (anchors.size() >= 1) {
@@ -622,21 +657,16 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                     float dy = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
                     float distance = (float)Math.sqrt(dx*dx + dy*dy);
 
-                    Vector3 vec3 = new Vector3(0f, 45f, 0f);
-                    Quaternion target = Quaternion.axisAngle(vec3, 0);
-                    float alpha = target.x;
-                    float beta = target.y;
-                    float theta = target.z;
+                    Vector3 vec3 = new Vector3();
+                    Quaternion target = EulerToQuat(-90,-45, 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
 
 
-                    vector[0] = alpha;
-                    vector[1] = beta;
-                    vector[2] = theta;
-                    //vector[2] = dy/distance;
-                    //vector[2] = 0.5f;
-                    vector[3] = 0;
-                    Pose pose;
-                    pose = new Pose(frame.getCamera().getPose().makeTranslation(0, -1f, -2f).getTranslation(), vector);
+                    vector[0] = target.x;
+                    vector[1] = target.y;
+                    vector[2] = target.z;
+                    vector[3] = target.w;
+
+                    Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0, -1f, -2f).getTranslation(), vector);
                     Anchor anchor = session.createAnchor(pose);
                     anchors.add(anchor);
 //                    pose = new Pose(pose.makeTranslation(0-vector[2], -1f, -2f - dx/distance).getTranslation(), vector);
