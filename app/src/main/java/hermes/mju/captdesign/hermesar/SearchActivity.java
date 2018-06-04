@@ -114,7 +114,7 @@ public class SearchActivity extends AppCompatActivity {
                                     intent.putExtra("LON", arrayPOI.get(index).longitude);
                                     intent.putExtra("LAT", arrayPOI.get(index).latitude);
 
-                                    setResult(RESULT_OK, intent);
+                                    setResult(3, intent);
                                     finish();
                                 }
                             }).show();
