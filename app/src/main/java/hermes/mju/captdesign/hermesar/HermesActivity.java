@@ -142,8 +142,6 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         initButton();
 
         mlocationManager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
-
-
     }
 
     @Override
@@ -296,11 +294,11 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         // 방향  버튼 클릭 시
         if(view == compassButton){
             if(compass_mode==false){
-                TmapCurrent();
                 compassOn();
-            }else if(compass_mode==true){
                 TmapCurrent();
+            }else if(compass_mode==true){
                 compassOff();
+                TmapCurrent();
             }
         }
     }
@@ -318,7 +316,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         d_tItem.setTMapPoint(endpoint);
         d_tItem.setName("목적지");
         d_tItem.setVisible(TMapMarkerItem.VISIBLE);
-        Bitmap d_bitmap = BitmapFactory.decodeResource(s_context.getResources(),R.drawable.d_icon);
+        Bitmap d_bitmap = BitmapFactory.decodeResource(s_context.getResources(),R.drawable.marker);
         d_tItem.setIcon(d_bitmap);
         tmapview.bringMarkerToFront(d_tItem);
         findPath();                                                 //설정된 출발지,도착지로 보행자 경로표시
@@ -328,12 +326,13 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         Context context = mContext;
         tItem.setTMapPoint(startpoint);
         tItem.setName("출발지");
-        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),R.drawable.s_icon);
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(),R.drawable.marker2);
         tItem.setIcon(bitmap);
         tmapview.bringMarkerToFront(tItem);
     }
     public void gotoSearch(){
-        startActivity(new Intent(this, SearchActivity.class));
+        startActivityForResult(new Intent(this, SearchActivity.class),3);
+
     }
 
     //방향 버튼 클릭시 나침반모드,시야표출 활성화, 비활성화
@@ -414,6 +413,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     // 뒤로가기 버튼 클릭시
     public void onBackPressed(){
+        startActivity(new Intent(this, MainActivity.class));
         // 로그인하면 main activity로 돌아가지 못하게 막기. 추후에 로그아웃 등으로 기능을 바꿔야함
     }
 
@@ -450,9 +450,22 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case 0:
                 makePoint(resultCode);
+                break;
+            case 3:
+                endpoint.setLatitude((double)data.getSerializableExtra("LAT"));
+                endpoint.setLongitude((double)data.getSerializableExtra("LON"));
+                TMapMarkerItem tItem2 = new TMapMarkerItem();
+                Context context = mContext;
+                tItem2.setTMapPoint(endpoint);
+                tItem2.setName("ping2");
+                Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.marker2);
+                tItem2.setIcon(bitmap2);
+                tmapview.bringMarkerToFront(tItem2);
+                findPath();
                 break;
         }
     }
@@ -466,7 +479,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
             Context context = mContext;
             tItem.setTMapPoint(startpoint);
             tItem.setName("ping");
-            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.s_icon);
+            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.marker);
             tItem.setIcon(bitmap);
             tmapview.bringMarkerToFront(tItem);
         }
@@ -476,10 +489,12 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
             Context context = mContext;
             tItem2.setTMapPoint(endpoint);
             tItem2.setName("ping2");
-            Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.d_icon);
+            Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.marker2);
             tItem2.setIcon(bitmap2);
             tmapview.bringMarkerToFront(tItem2);
             findPath();
+        }if(pointType==3){
+
         }
     }
 
