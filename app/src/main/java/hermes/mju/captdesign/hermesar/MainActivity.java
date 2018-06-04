@@ -39,6 +39,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import hermes.mju.captdesign.hermesar.Mainitem.FavoriteActivity;
 import hermes.mju.captdesign.hermesar.Mainitem.LastestActivity;
 import hermes.mju.captdesign.hermesar.Mainitem.SettingActivity;
+import hermes.mju.captdesign.hermesar.login.LoginActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton lastestButton;
     private ImageButton favButton;
     private ImageButton OptionButton;
+    private TextView logoutButton;
 
     private FirebaseAuth mAuth;
     private FirebaseUser user;
@@ -62,6 +64,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
+
+        if(mAuth.getCurrentUser() == null){
+            //로그인이 안 되었다면 이 액티비티를 종료함
+            finish();
+            //그리고 액티비티를 연다.
+            startActivity(new Intent(getApplicationContext(), LoginActivity.class)); //추가해 줄 ProfileActivity
+        }
         user = mAuth.getCurrentUser();
         if (user != null) {
             // Name, email address, and profile photo Url
@@ -86,12 +95,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lastestButton = (ImageButton)findViewById(R.id.lastestButton);
         favButton = (ImageButton)findViewById(R.id.favButton);
         OptionButton = (ImageButton)findViewById(R.id.OptionButton);
+        logoutButton = (TextView)findViewById(R.id.LogoutButton);
 
         StartButton.setOnClickListener(this);
         lastestButton.setOnClickListener(this);
         favButton.setOnClickListener(this);
         OptionButton.setOnClickListener(this);
-
+        logoutButton.setOnClickListener(this);
     }
 
     public void onClick(View view) {
@@ -107,6 +117,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(view == OptionButton){
             startActivity(new Intent(this, SettingActivity.class));
         }
+        if(view == logoutButton){
+            logoutProcess();
+        }
     }
 
+    public void logoutProcess(){
+        mAuth.signOut();
+        finish();
+        startActivity(new Intent(this, LoginActivity.class));
+    }
 }
