@@ -665,8 +665,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                     float dx = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
                     float dy = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
                     float distance = (float)Math.sqrt(dx*dx + dy*dy);
-
-                    Vector3 vec3 = new Vector3();
+                    
                     Quaternion target = EulerToQuat(-90, (float)Math.toDegrees(Math.atan(dx/dy)), 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
 
 
