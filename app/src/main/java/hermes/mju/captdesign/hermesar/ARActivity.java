@@ -533,7 +533,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         dist = Math.acos(dist);
         dist = rad2deg(dist);
 
-        dist = dist * 60 * 1.1515 * 1609.344;
+        dist = dist * 60 * 1.1515 * 1609.344;       //m로 반환
 
         return dist;
 
@@ -641,6 +641,14 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
         return quat;
     }
+    public double getNextDistance(int x){
+        if ( x >= listOfPoint.size() ){
+            return 0;
+        } else {
+            return getDistance(listOfPoint.get(x).getLocation().getLatitude(), listOfPoint.get(x).getLocation().getLongitude()
+                    , listOfPoint.get(x+1).getLocation().getLatitude(), listOfPoint.get(x+1).getLocation().getLongitude());
+        }
+    }
 
     public void makeAnchor(Frame frame){
         try {
@@ -650,15 +658,16 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             } else {
                 anchors.add(session.createAnchor(frame.getCamera().getPose().compose(Pose.makeTranslation(0, 0, -1f).extractTranslation())));
             }*/
-            if ( listOfPoint.size() > 0 && session != null ) {
-                if (anchors.size() < 1) {
+            if ( listOfPoint.isEmpty() != true && session != null ) {
+                //while ( int i = 0; i < )
+                if (anchors.size() < 30) {
                     float[] vector = new float[4];
                     float dx = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
                     float dy = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
                     float distance = (float)Math.sqrt(dx*dx + dy*dy);
 
                     Vector3 vec3 = new Vector3();
-                    Quaternion target = EulerToQuat(-90,-45, 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
+                    Quaternion target = EulerToQuat(-90, (float)Math.toDegrees(Math.atan(dx/dy)), 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
 
 
                     vector[0] = target.x;
@@ -669,9 +678,9 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                     Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0, -1f, -2f).getTranslation(), vector);
                     Anchor anchor = session.createAnchor(pose);
                     anchors.add(anchor);
-//                    pose = new Pose(pose.makeTranslation(0-vector[2], -1f, -2f - dx/distance).getTranslation(), vector);
-//                    anchor = session.createAnchor(pose);
-//                    anchors.add(anchor);
+                    pose = new Pose(pose.makeTranslation(pose.tx() + dx/distance, pose.ty(), pose.tz() + dy/distance).getTranslation(), vector);
+                    anchor = session.createAnchor(pose);
+                    anchors.add(anchor);
                 } else {
 
                 }
