@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -30,8 +31,9 @@ public class SearchActivity extends AppCompatActivity {
 
     TMapData mapData;
     EditText editSearch;
-    Button btnSearch;
+    ImageButton btnSearch;
     ListView lvSearch;
+    ImageButton voiceSearch;
 
     SearchAdapter adapter;
     ArrayList<POI> arrayPOI;
@@ -51,7 +53,7 @@ public class SearchActivity extends AppCompatActivity {
         mapData = new TMapData();
 
         editSearch = (EditText)findViewById(R.id.editSearch);
-        btnSearch = (Button)findViewById(R.id.btnSearch);
+        btnSearch = (ImageButton)findViewById(R.id.btnSearch);
         lvSearch = (ListView)findViewById(R.id.lvSearch);
 
         adapter = new SearchAdapter();
@@ -79,8 +81,8 @@ public class SearchActivity extends AppCompatActivity {
         mRecognizer.setRecognitionListener(recognitionListener);
         searchView = (TextView) findViewById(R.id.editSearch);
         textView = (TextView) findViewById(R.id.textView);
-        Button button = (Button) findViewById(R.id.voiceSearch);
-        button.setOnClickListener(new View.OnClickListener() {
+        voiceSearch = (ImageButton) findViewById(R.id.voiceSearch);
+        voiceSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mRecognizer.startListening(intent);

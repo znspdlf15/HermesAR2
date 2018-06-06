@@ -16,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -50,10 +51,10 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     private Button arButton;
     private Button desButton;
     private Button startButton;
-    private Button currentButton;
-    private Button searchButton;
-    private Button zoominButton;
-    private Button zoomoutButton;
+    private ImageButton currentButton;
+    private ImageButton searchButton;
+    private ImageButton zoominButton;
+    private ImageButton zoomoutButton;
     private Button compassButton;
 
     // 좌표
@@ -112,10 +113,10 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         arButton =  (Button)findViewById(R.id.ARbutton);
         desButton =  (Button)findViewById(R.id.DestiButton);
         startButton =  (Button)findViewById(R.id.startButton);
-        currentButton =  (Button)findViewById(R.id.CurrentButton);
-        searchButton = (Button)findViewById(R.id.SearchButton);
-        zoominButton = (Button)findViewById(R.id.zoomin);
-        zoomoutButton = (Button)findViewById(R.id.zoomout);
+        currentButton =  (ImageButton)findViewById(R.id.CurrentButton);
+        searchButton = (ImageButton)findViewById(R.id.SearchButton);
+        zoominButton = (ImageButton)findViewById(R.id.zoomin);
+        zoomoutButton = (ImageButton)findViewById(R.id.zoomout);
         compassButton = (Button)findViewById(R.id.compass);
 
 
@@ -472,28 +473,33 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
                 makePoint(resultCode);
                 break;
             case 3:
-
+                selectedPath(data);
                 if((data.getSerializableExtra("LAT")) == null || (data.getSerializableExtra("LON") == null) ){
                   break;  // 에러처리
                 }
-                endpoint = new TMapPoint((double)data.getSerializableExtra("LAT"),(double)data.getSerializableExtra("LON"));
-                databaseReference.child("Lastest").child(userID).child((String)data.getSerializableExtra("POI")).push().setValue(endpoint); // 데이터 푸쉬
-                TMapMarkerItem tItem2 = new TMapMarkerItem();
-                Context context = mContext;
-                tItem2.setTMapPoint(endpoint);
-                tItem2.setName("ping2");
-                Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.marker2);
-                tItem2.setIcon(bitmap2);
-                tmapview.bringMarkerToFront(tItem2);
-                findPath();
                 break;
         }
+    }
+    public void selectedPath(Intent data){
+        endpoint = new TMapPoint((double)data.getSerializableExtra("LAT"),(double)data.getSerializableExtra("LON"));
+        databaseReference.child("Lastest").child(userID).child((String)data.getSerializableExtra("POI")).push().setValue(endpoint); // 데이터 푸쉬
+
+        //endpoint.setLatitude((double)data.getSerializableExtra("LAT"));
+        //endpoint.setLongitude((double)data.getSerializableExtra("LON"));
+        TMapMarkerItem tItem2 = new TMapMarkerItem();
+        Context context = mContext;
+        tItem2.setTMapPoint(endpoint);
+        tItem2.setName("ping2");
+        Bitmap bitmap2 = BitmapFactory.decodeResource(context.getResources(), R.drawable.marker2);
+        tItem2.setIcon(bitmap2);
+        tmapview.bringMarkerToFront(tItem2);
+        findPath();
     }
 
     // 이것도 상수로 리팩토링 필요 현재는 0: 시작점, 1: 도착점으로 구분했음
     public void makePoint(int pointType){
 
-        if(pointType==0) {
+        if(pointType==2) {
             startpoint = clickedPoint;
             TMapMarkerItem tItem = new TMapMarkerItem();
             Context context = mContext;

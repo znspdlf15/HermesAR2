@@ -22,17 +22,17 @@
             android:layout_weight="1"
             android:inputType="text" />
 
-        <Button
+        <ImageButton
             android:id="@+id/btnSearch"
-            android:layout_width="wrap_content"
+            android:layout_width="95dp"
             android:layout_height="wrap_content"
-            android:text="검색" />
+            android:src="@drawable/search" />
 
-        <Button
+        <ImageButton
             android:id="@+id/voiceSearch"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
-            android:text="음성" />
+            android:src="@drawable/voice" />
     </LinearLayout>
 
 
