@@ -51,14 +51,13 @@ public class MapPopUP extends Activity implements View.OnClickListener{
         Intent i = getIntent();
         selectpoint = (String)i.getSerializableExtra("spoint");
         gpslocatext.setText(selectpoint);
-
     }
 
     // 상수를 이용해서 리팩토링 필요 : HermesActivity의 popUPOnMap()도 같이!
     @Override
     public void onClick(View view) {
         if(view == buttonStartPoint){
-            setResult(0);
+            setResult(2);
             finish();
         }
         if(view == buttonEndPoint){
