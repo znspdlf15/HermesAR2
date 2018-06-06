@@ -650,7 +650,15 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         }
     }
 
-    public void makeAnchor(Frame frame){
+    int nowPoint = 0;
+    public double getNextDx(int i){
+        return (listOfPoint.get(i+1).getLocation().getLongitude() - listOfPoint.get(i).getLocation().getLongitude());
+    }
+    public double getNextDy(int i){
+        return (listOfPoint.get(i+1).getLocation().getLatitude() - listOfPoint.get(i).getLocation().getLatitude());
+    }
+
+    public void makeAnchor(Frame frame) {
         try {
             /*if (anchors.size() >= 1) {
                 anchors.get(0).detach();
@@ -658,15 +666,15 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             } else {
                 anchors.add(session.createAnchor(frame.getCamera().getPose().compose(Pose.makeTranslation(0, 0, -1f).extractTranslation())));
             }*/
-            if ( listOfPoint.isEmpty() != true && session != null ) {
+            if (listOfPoint.isEmpty() != true && session != null) {
                 //while ( int i = 0; i < )
                 if (anchors.size() < 10) {
                     float[] vector = new float[4];
-                    float dx = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
-                    float dy = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
-                    float distance = (float)Math.sqrt(dx*dx + dy*dy);
+                    float dx = (float) getNextDx(0);
+                    float dy = (float) getNextDy(0);
+                    float distance = (float) Math.sqrt(dx * dx + dy * dy);
 
-                    float deg = (float)Math.toDegrees(Math.atan(dx/dy));
+                    float deg = (float) Math.toDegrees(Math.atan(dx / dy));
                     Quaternion target = EulerToQuat(-90, -deg, 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
 
                     vector[0] = target.x;
@@ -674,10 +682,10 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                     vector[2] = target.z;
                     vector[3] = target.w;
 
-                    float ddx = dx/distance;
-                    float ddy = dy/distance;
-                    for ( int i=0; i < 10; i++ ) {
-                        Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i*ddy).getTranslation(), vector);
+                    float ddx = dx / distance;
+                    float ddy = dy / distance;
+                    for (int i = 0; i < getNextDistance(0); i++) {
+                        Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i * ddy).getTranslation(), vector);
                         Anchor anchor = session.createAnchor(pose);
                         anchors.add(anchor);
                     }
@@ -689,7 +697,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             Log.e(TAG, "Exception on the OpenGL thread", t);
         }
     }
-
+    
     @Override
     public void onDrawFrame(GL10 gl10) {
 // Clear screen to notify driver it should not load any pixels from previous frame.
