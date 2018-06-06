@@ -36,6 +36,7 @@
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:layout_weight="1"
+            android:background="@color/colorPrimary"
             android:src="@drawable/main_ic_ar"
             android:text="실행" />
 
@@ -44,6 +45,7 @@
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:layout_weight="1"
+            android:background="@color/colorPrimary"
             android:src="@drawable/main_ic_lastest"
             android:text="최근검색" />
 
@@ -52,6 +54,7 @@
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:layout_weight="1"
+            android:background="@color/colorPrimary"
             android:src="@drawable/main_ic_favorit"
             android:text="즐겨찾기" />
 
@@ -60,6 +63,7 @@
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:layout_weight="1"
+            android:background="@color/colorPrimary"
             android:src="@drawable/main_ic_map"
             android:text="설정" />
 

@@ -42,12 +42,6 @@ public class SearchActivity extends AppCompatActivity {
     TextView searchView;
     private final int MY_PERMISSIONS_RECORD_AUDIO = 1;
 
-    public static class POI {
-        public String name;
-        public double latitude;
-        public double longitude;
-    }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -18,6 +18,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapGpsManager;
 import com.skt.Tmap.TMapMarkerItem;
@@ -98,6 +102,12 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     private boolean compass_mode= false;
 
+    private FirebaseDatabase firebaseDatabase;
+    private DatabaseReference databaseReference;
+    private FirebaseAuth mAuth;
+    private FirebaseUser user;
+    private String userID;
+
     public void initButton(){
         arButton =  (Button)findViewById(R.id.ARbutton);
         desButton =  (Button)findViewById(R.id.DestiButton);
@@ -140,6 +150,12 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
         // button 연결
         initButton();
+
+        mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        databaseReference = firebaseDatabase.getReference();
+        userID = user.getEmail().split("@")[0];
 
         mlocationManager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
     }
@@ -460,8 +476,8 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
                 if((data.getSerializableExtra("LAT")) == null || (data.getSerializableExtra("LON") == null) ){
                   break;  // 에러처리
                 }
-                endpoint.setLatitude((double)data.getSerializableExtra("LAT"));
-                endpoint.setLongitude((double)data.getSerializableExtra("LON"));
+                endpoint = new TMapPoint((double)data.getSerializableExtra("LAT"),(double)data.getSerializableExtra("LON"));
+                databaseReference.child("Lastest").child(userID).child((String)data.getSerializableExtra("POI")).push().setValue(endpoint); // 데이터 푸쉬
                 TMapMarkerItem tItem2 = new TMapMarkerItem();
                 Context context = mContext;
                 tItem2.setTMapPoint(endpoint);
