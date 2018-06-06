@@ -116,6 +116,13 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
     private final ArrayList<Anchor> anchors = new ArrayList<>();
     private final float[] anchorMatrix = new float[16];
+    private Sensor mAccelerometer;
+    private Sensor mMagneticField;
+    private float mAzimut,mPitch,mRoll;
+
+
+    float[] mGravity;
+    float[] mGeomagnetic;
 
     private Snackbar messageSnackbar;
 
@@ -157,6 +164,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         tvCurrentLocation = (TextView) findViewById(R.id.tv_current_location);
         arOverlayView = new AROverlayView(this);
         arOverlayView.updateARPoint();
+        mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mMagneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         //listOfPoint 받아오는 작업
         Intent intent = getIntent();
@@ -200,8 +209,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     public void onResume() {
         super.onResume();
         requestLocationPermission();
-        //requestCameraPermission();
-        //registerSensors();
+        requestCameraPermission();
+        registerSensors();
         //initAROverlayView();
 
         // ar core
@@ -271,7 +280,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                 new Runnable() {
                     @Override
                     public void run() {
-                        showSnackbarMessage("Searching for surfaces...", false);
+
                     }
                 });
     }
@@ -325,7 +334,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                 this.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             this.requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSIONS_CODE);
         } else {
-            initARCameraView();
+            //initARCameraView();
         }
     }
 
@@ -394,6 +403,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         sensorManager.registerListener(this,
                 sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
                 SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, mMagneticField, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -411,6 +422,23 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
             Matrix.multiplyMM(rotatedProjectionMatrix, 0, projectionMatrix, 0, rotationMatrixFromVector, 0);
             this.arOverlayView.updateRotatedProjectionMatrix(rotatedProjectionMatrix);
+        }
+
+        if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+            mGravity = sensorEvent.values;
+        if (sensorEvent.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+            mGeomagnetic = sensorEvent.values;
+        if (mGravity != null && mGeomagnetic != null) {
+            float R[] = new float[9];
+            float I[] = new float[9];
+            boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+            if (success) {
+                float orientation[] = new float[3];
+                SensorManager.getOrientation(R, orientation);
+                mAzimut = (float)Math.toDegrees(orientation[0]);
+                mPitch = (float)Math.toDegrees(orientation[1]);
+                mRoll = (float)Math.toDegrees(orientation[2]);
+            }
         }
     }
 
@@ -665,16 +693,43 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     }
     public void makeAnchor(Frame frame) {
         try {
-            /*if (anchors.size() >= 1) {
-                anchors.get(0).detach();
-                anchors.remove(0);
-            } else {
-                anchors.add(session.createAnchor(frame.getCamera().getPose().compose(Pose.makeTranslation(0, 0, -1f).extractTranslation())));
-            }*/
-            for (int j=0; j < listOfPoint.size(); j++){
+            for (int j = 0; j < listOfPoint.size(); j++){
                 if (listOfPoint.isEmpty() != true && session != null) {
                     //while ( int i = 0; i < )
-                    if (anchors.size() < 30) {
+                    if (anchors.size() < 10) {
+
+                        if ( j == 0 ){
+
+                            float dx = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
+                            float dy = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
+                            float distance = (float)Math.sqrt(dx*dx + dy*dy);
+                            float[] vector = new float[4];
+
+                            float deg = (float) Math.toDegrees(Math.atan(dx / dy));     // 터치 ㄴ
+                            if ( dy < 0 ){
+                                deg = deg + 180;
+                            }
+                            float deg2 = mAzimut - deg; // 보정된 각도 if가 먼저? deg2가 먼저? 일지도 생각해봐야함
+
+                            Quaternion target = EulerToQuat(-90, deg2, 0);         // 이거는 화살표의 각도 조절 deg2 or -deg2일듯
+
+                            vector[0] = target.x;
+                            vector[1] = target.y;
+                            vector[2] = target.z;
+                            vector[3] = target.w;   // 건들지마셈
+
+                            float ddx = -(float)Math.sin(Math.toRadians(deg2));      // 이것도 맞는거같은데 그래도 체크해봐야함
+                            float ddy = -(float)Math.cos(Math.toRadians(deg2));
+
+                            for (int i = 0; i < 10; i++) {
+                                Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i * ddy).getTranslation(), vector);
+                                Anchor anchor = session.createAnchor(pose);
+                                anchors.add(anchor);
+                            }
+                        }
+                        frame.getCamera().getPose().tx();
+                        anchors.get(10).getPose().tx();
+
                         float[] vector = new float[4];
                         float dx = (float) getNextDx(j);
                         float dy = (float) getNextDy(j);
@@ -695,13 +750,16 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                         float ddy = dy / distance;
                         float lastX = 0;
                         float lastY = 0;
-                        for (int i = 0; i < getNextDistance(j); i++) {
-                            Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i * ddy).getTranslation(), vector);
-                            Anchor anchor = session.createAnchor(pose);
-                            anchors.add(anchor);
-                            lastX = 0 + i * ddx;
-                            lastY = -2f - i * ddy;
-                        }
+
+
+
+//                        for (int i = 0; i < getNextDistance(j); i++) {
+//                            Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i * ddy).getTranslation(), vector);
+//                            Anchor anchor = session.createAnchor(pose);
+//                            anchors.add(anchor);
+//                            lastX = 0 + i * ddx;
+//                            lastY = -2f - i * ddy;
+//                        }
                     }
                 }
             }
