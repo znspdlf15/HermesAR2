@@ -51,6 +51,10 @@ import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+import com.google.ar.sceneform.lullmodel.Vec3;
+import com.google.ar.sceneform.math.Quaternion;
+import com.google.ar.sceneform.math.Vector3;
+import com.skt.Tmap.TMapGpsManager;
 
 import java.io.IOException;
 import java.sql.Time;
@@ -115,11 +119,13 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
     private Snackbar messageSnackbar;
 
-
+    //private TMapGpsManager tmapgps;
     ArrayList<ARPoint> roadList; // 읽어온 리스트
     ArrayList<ARPoint> listOfPoint; // 좌표 리스트
     ArrayList<ARPoint> pastPoint; // 이미 지난 포인트.
 
+    double nowLatitude;
+    double nowLongitude;
 
     private String time;
     private String distance;
@@ -155,7 +161,8 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         //listOfPoint 받아오는 작업
         Intent intent = getIntent();
         roadList = (ArrayList<ARPoint>)intent.getSerializableExtra("listOfPoint");
-
+        nowLatitude = intent.getDoubleExtra("nowLatitude", 0);
+        nowLongitude = intent.getDoubleExtra("nowLongitutde", 0);
         //출발지-목적지 간의 거리,시간 받아오는 작업
         distance = (String)intent.getSerializableExtra("Distance");
         time = (String)intent.getSerializableExtra("Time");
@@ -466,7 +473,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         listOfPoint.remove(point);
     }
     private void updateLatestLocation() {
-        if (arOverlayView !=null && location != null) {
+       /* if (arOverlayView !=null && location != null) {
             arOverlayView.updateCurrentLocation(location);
             //tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n" , location.getLatitude(), location.getLongitude(), location.getAltitude()));
             tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n예상 소요시간: %s \n총 이동거리: %s\n" , location.getLatitude(), location.getLongitude(), location.getAltitude(), time, distance));
@@ -478,6 +485,32 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                     throwToPastPoint(0);
                 }
             }
+        }*/
+        double longitude=0;
+        double latitude=0;
+       if ( location != null ) {
+           longitude = location.getLongitude();
+           latitude = location.getLatitude();
+       }
+        if ( longitude != 0 ){
+            nowLongitude = longitude;
+        }
+        if ( latitude != 0 ){
+            nowLatitude = latitude;
+        }
+
+        if (arOverlayView !=null && location != null) {
+            //arOverlayView.updateCurrentLocation(location);
+            //tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n" , location.getLatitude(), location.getLongitude(), location.getAltitude()));
+            tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n예상 소요시간: %s \n총 이동거리: %s\n" , location.getLatitude(), location.getLongitude(), location.getAltitude(), time, distance));
+
+
+            /*if (listOfPoint.isEmpty() == false) {
+                if (isNearToHere(new ARPoint("here", tmapgps.getLocation().getLatitude(),
+                        tmapgps.getLocation().getLongitude(), location.getAltitude()), listOfPoint.get(0)) == true) {
+                    throwToPastPoint(0);
+                }
+            }*/
         }
     }
     // This function converts decimal degrees to radians
@@ -500,7 +533,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         dist = Math.acos(dist);
         dist = rad2deg(dist);
 
-        dist = dist * 60 * 1.1515 * 1609.344;
+        dist = dist * 60 * 1.1515 * 1609.344;       //m로 반환
 
         return dist;
 
@@ -574,6 +607,49 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         GLES20.glViewport(0, 0, width, height);
     }
 
+    // 건들지 말것.
+    public Quaternion EulerToQuat(float roll, float pitch, float yaw)  {
+
+        float cr, cp, cy, sr, sp, sy, cpcy, spsy;
+        Quaternion quat = new Quaternion();
+        float r = (float)Math.toRadians(roll);
+        float p = (float)Math.toRadians(pitch);
+        float y = (float)Math.toRadians(yaw);
+        // calculate trig identities
+
+        cr = (float)Math.cos(r/2);
+        cp = (float)Math.cos(p/2);
+
+        cy = (float)Math.cos(y/2);
+        sr = (float)Math.sin(r/2);
+
+        sp = (float)Math.sin(p/2);
+
+        sy = (float)Math.sin(y/2);
+
+        cpcy = cp * cy;
+
+        spsy = sp * sy;
+
+        quat.w = cr * cpcy + sr * spsy;
+
+        quat.x = sr * cpcy - cr * spsy;
+
+        quat.y = cr * sp * cy + sr * cp * sy;
+
+        quat.z = cr * cp * sy - sr * sp * cy;
+
+        return quat;
+    }
+    public double getNextDistance(int x){
+        if ( x >= listOfPoint.size() ){
+            return 0;
+        } else {
+            return getDistance(listOfPoint.get(x).getLocation().getLatitude(), listOfPoint.get(x).getLocation().getLongitude()
+                    , listOfPoint.get(x+1).getLocation().getLatitude(), listOfPoint.get(x+1).getLocation().getLongitude());
+        }
+    }
+
     public void makeAnchor(Frame frame){
         try {
             /*if (anchors.size() >= 1) {
@@ -582,37 +658,36 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             } else {
                 anchors.add(session.createAnchor(frame.getCamera().getPose().compose(Pose.makeTranslation(0, 0, -1f).extractTranslation())));
             }*/
-            if ( listOfPoint.size() > 0 ) {
-                if (anchors.size() < 1) {
-                    float[] aa = new float[4];
-                    /*aa[0] = (float)(listOfPoint.get(0).getLocation().getLongitude() - location.getLongitude());
-                    aa[1] = (float)(listOfPoint.get(0).getLocation().getLatitude() - location.getLatitude());
-                    aa[2] = 1f;*/
-                    aa[0] = -1f;
-                    aa[1] = 0;
-                    aa[2] = 0;
-                    aa[3] = 1;
-                    Pose pose = frame.getCamera().getPose().compose(Pose.makeRotation(aa).extractRotation());
-                    pose = new Pose(frame.getCamera().getPose().makeTranslation(0, -1f, -2f).getTranslation(), aa);
+            if ( listOfPoint.isEmpty() != true && session != null ) {
+                //while ( int i = 0; i < )
+                if (anchors.size() < 30) {
+                    float[] vector = new float[4];
+                    float dx = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
+                    float dy = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
+                    float distance = (float)Math.sqrt(dx*dx + dy*dy);
+                    
+                    Quaternion target = EulerToQuat(-90, (float)Math.toDegrees(Math.atan(dx/dy)), 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
 
+
+                    vector[0] = target.x;
+                    vector[1] = target.y;
+                    vector[2] = target.z;
+                    vector[3] = target.w;
+
+                    Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0, -1f, -2f).getTranslation(), vector);
                     Anchor anchor = session.createAnchor(pose);
                     anchors.add(anchor);
+                    pose = new Pose(pose.makeTranslation(pose.tx() + dx/distance, pose.ty(), pose.tz() + dy/distance).getTranslation(), vector);
+                    anchor = session.createAnchor(pose);
+                    anchors.add(anchor);
                 } else {
-                    float[] aa = new float[3];
-                    /*aa[0] = (float)(listOfPoint.get(0).getLocation().getLongitude() - location.getLongitude());
-                    aa[1] = (float)(listOfPoint.get(0).getLocation().getLatitude() - location.getLatitude());
-                    aa[2] = 1f;*/
-                    aa[0] = 100;
-                    aa[1] = 100;
-                    aa[2] = 90;
 
-                    //anchors.get(0).getPose().rotateVector(aa);
                 }
             }
 
-            } catch (Throwable t) {
-                // Avoid crashing the application due to unhandled exceptions.
-                Log.e(TAG, "Exception on the OpenGL thread", t);
+        } catch (Throwable t) {
+            // Avoid crashing the application due to unhandled exceptions.
+            Log.e(TAG, "Exception on the OpenGL thread", t);
         }
     }
 

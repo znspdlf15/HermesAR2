@@ -269,7 +269,10 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     public void passardata(){
         Intent intent = new Intent(this,ARActivity.class);
+        intent.putExtra("nowLongitutde", nowLongitude);
+        intent.putExtra("nowLatitude", nowLatitude);
         intent.putExtra("listOfPoint", listOfPoint);
+
     }
 
     public void onClick(View view) {
