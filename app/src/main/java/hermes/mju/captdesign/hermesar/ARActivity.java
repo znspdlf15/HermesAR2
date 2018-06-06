@@ -660,26 +660,27 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
             }*/
             if ( listOfPoint.isEmpty() != true && session != null ) {
                 //while ( int i = 0; i < )
-                if (anchors.size() < 30) {
+                if (anchors.size() < 10) {
                     float[] vector = new float[4];
-                    float dx = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
-                    float dy = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
+                    float dx = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
+                    float dy = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
                     float distance = (float)Math.sqrt(dx*dx + dy*dy);
+
+                    float deg = (float)Math.toDegrees(Math.atan(dx/dy));
+                    Quaternion target = EulerToQuat(-90, -deg, 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
                     
-                    Quaternion target = EulerToQuat(-90, (float)Math.toDegrees(Math.atan(dx/dy)), 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
-
-
                     vector[0] = target.x;
                     vector[1] = target.y;
                     vector[2] = target.z;
                     vector[3] = target.w;
 
-                    Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0, -1f, -2f).getTranslation(), vector);
-                    Anchor anchor = session.createAnchor(pose);
-                    anchors.add(anchor);
-                    pose = new Pose(pose.makeTranslation(pose.tx() + dx/distance, pose.ty(), pose.tz() + dy/distance).getTranslation(), vector);
-                    anchor = session.createAnchor(pose);
-                    anchors.add(anchor);
+                    float ddx = dx/distance;
+                    float ddy = dy/distance;
+                    for ( int i=0; i < 10; i++ ) {
+                        Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i*ddy).getTranslation(), vector);
+                        Anchor anchor = session.createAnchor(pose);
+                        anchors.add(anchor);
+                    }
                 } else {
 
                 }
