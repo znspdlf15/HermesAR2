@@ -30,6 +30,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,7 +70,7 @@ import hermes.mju.captdesign.hermesar.rendering.PlaneRenderer;
 import hermes.mju.captdesign.hermesar.rendering.PointCloudRenderer;
 
 
-public class ARActivity extends AppCompatActivity implements SensorEventListener, LocationListener, GLSurfaceView.Renderer{
+public class ARActivity extends AppCompatActivity implements SensorEventListener, LocationListener, GLSurfaceView.Renderer, View.OnClickListener{
 
     final static String TAG = "ARActivity";
     private SurfaceView surfaceView;
@@ -78,6 +79,10 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     private Camera camera;
     private ARCamera arCamera;
     private TextView tvCurrentLocation;
+    private ImageButton leftRotateButton;
+    private ImageButton rightRotateButton;
+    private int rotate;
+    private float totalDistance;
 
     // img
     private ImageView dirImg;
@@ -146,6 +151,14 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         dirImg = (ImageView) findViewById(R.id.dirImg);
         dirImg.setImageResource(R.drawable.direction);
 
+        leftRotateButton = (ImageButton) findViewById(R.id.LeftRotate);
+        leftRotateButton.setOnClickListener(this);
+
+        rightRotateButton = (ImageButton) findViewById(R.id.RightRotate);
+        rightRotateButton.setOnClickListener(this);
+
+        rotate = 0;
+
         metrics = new DisplayMetrics();
         windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         windowManager.getDefaultDisplay().getMetrics(metrics);
@@ -171,7 +184,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         Intent intent = getIntent();
         roadList = (ArrayList<ARPoint>)intent.getSerializableExtra("listOfPoint");
         nowLatitude = intent.getDoubleExtra("nowLatitude", 0);
-        nowLongitude = intent.getDoubleExtra("nowLongitutde", 0);
+        nowLongitude = intent.getDoubleExtra("nowLongitude", 0);
         //출발지-목적지 간의 거리,시간 받아오는 작업
         distance = (String)intent.getSerializableExtra("Distance");
         time = (String)intent.getSerializableExtra("Time");
@@ -196,6 +209,9 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
         installRequested = false;
 
+        totalDistance = 0;
+        initTotalDistance();
+
     }
 
     // 읽어온 리스트를 listOfPoint로 복사.
@@ -203,6 +219,18 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         for( int n = 0; n < roadList.size(); n++){
             listOfPoint.add(roadList.get(n));
         }
+    }
+
+    public void initTotalDistance(){
+        float dx = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
+        float dy = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
+        float distance = (float)(Math.sqrt(dx*dx + dy*dy) * 60 * 1.1515 * 1609.344);
+
+        totalDistance = distance;
+        for( int n = 0; n < listOfPoint.size()-1; n++){
+            totalDistance = totalDistance + (float)getNextDistance(n);
+        }
+        totalDistance = totalDistance;
     }
 
     @Override
@@ -691,6 +719,14 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         }
         return 0;
     }
+
+    float lastX = 0;
+    float lastY = -2f;
+    int nowIndex = 0;
+    boolean next = true;
+    boolean rotated = false;
+    float beforeX = 0;
+    float beforeY = 0;
     public void makeAnchor(Frame frame) {
         try {
             for (int j = 0; j < listOfPoint.size(); j++){
@@ -700,66 +736,81 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
                         if ( j == 0 ){
 
-                            float dx = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
-                            float dy = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
+                            float dx = (float)(listOfPoint.get(nowIndex).getLocation().getLongitude() - nowLongitude);
+                            float dy = (float)(listOfPoint.get(nowIndex).getLocation().getLatitude() - nowLatitude);
                             float distance = (float)Math.sqrt(dx*dx + dy*dy);
                             float[] vector = new float[4];
 
-                            float deg = (float) Math.toDegrees(Math.atan(dx / dy));     // 터치 ㄴ
-                            if ( dy < 0 ){
+                            float deg = (float) Math.toDegrees(Math.atan(dx / dy));     // 터치 ㄴ success
+                            if ( dy < 0 ) {
                                 deg = deg + 180;
                             }
-                            float deg2 = mAzimut - deg; // 보정된 각도 if가 먼저? deg2가 먼저? 일지도 생각해봐야함
+                            deg = deg + rotate;
+                            float deg2 = deg;
+                            //deg2 = deg2 - mAzimut; // 보정된 각도 if가 먼저? deg2가 먼저? 일지도 생각해봐야함
+//                            if ( Math.cos(Math.toRadians(deg)) < 0 ){
+//                                deg = deg + 180;
+//                            }                       // suc
+                            Quaternion target = EulerToQuat(-90, -deg2, 0);         // 이거는 화살표의 각도 조절 deg2 or -deg2일듯
 
-                            Quaternion target = EulerToQuat(-90, deg2, 0);         // 이거는 화살표의 각도 조절 deg2 or -deg2일듯
+                            vector[0] = target.x; vector[1] = target.y; vector[2] = target.z; vector[3] = target.w;   // 건들지마셈
+
+                            float ddx = (float)Math.sin(Math.toRadians(deg2));      // 맞음.
+                            float ddy = (float)Math.cos(Math.toRadians(deg2));
+                            if ( rotated == true ){
+                                lastX = beforeX;
+                                lastY = beforeY;
+                                rotated = false;
+                            }
+
+                            beforeX = lastX;
+                            beforeY = lastY;
+                            for (int i = 0; i < 10; i++) {
+                                Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(lastX, -1f, lastY).getTranslation(), vector);
+                                Anchor anchor = session.createAnchor(pose);
+                                anchors.add(anchor);
+                                lastX = lastX + ddx;
+                                lastY = lastY - ddy;
+                            }
+                        }
+                    } else {
+                        if ( isNear(frame.getCamera().getPose(), anchors.get(anchors.size()-1).getPose()) ){
+                            anchors.clear();
+
+                            float dx = (float)(listOfPoint.get(listOfPoint.size()-1).getLocation().getLongitude() - nowLongitude);
+                            float dy = (float)(listOfPoint.get(listOfPoint.size()-1).getLocation().getLatitude() - nowLatitude);
+                            float distance = (float)Math.sqrt(dx*dx + dy*dy);
+                            float[] vector = new float[4];
+
+                            float deg = (float) Math.toDegrees(Math.atan(dx / dy));     // 터치 ㄴ success
+                            if ( dy < 0 ) {
+                                deg = deg + 180;
+                            }
+                            deg = deg + rotate;
+                            float deg2 = deg;
+                            //deg2 = deg - mAzimut;
+//                            if ( Math.cos(Math.toRadians(deg)) < 0 ){
+//                                deg = deg + 180;
+//                            }                       // suc
+
+
+                            //Quaternion target = EulerToQuat(-90, -deg, 0);         // 이거는 화살표의 각도 조절 deg2 or -deg2일듯
+                            Quaternion target = EulerToQuat(-90, -deg2, 0);         // 이거는 화살표의 각도 조절 deg2 or -deg2일듯
 
                             vector[0] = target.x;
                             vector[1] = target.y;
                             vector[2] = target.z;
                             vector[3] = target.w;   // 건들지마셈
 
-                            float ddx = -(float)Math.sin(Math.toRadians(deg2));      // 이것도 맞는거같은데 그래도 체크해봐야함
-                            float ddy = -(float)Math.cos(Math.toRadians(deg2));
+                            float ddx = (float)Math.sin(Math.toRadians(deg2));      // 맞음.
+                            float ddy = (float)Math.cos(Math.toRadians(deg2));
 
                             for (int i = 0; i < 10; i++) {
-                                Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i * ddy).getTranslation(), vector);
+                                Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(lastX + i * ddx, -1f, lastY - i * ddy).getTranslation(), vector);
                                 Anchor anchor = session.createAnchor(pose);
                                 anchors.add(anchor);
                             }
                         }
-                        frame.getCamera().getPose().tx();
-                        anchors.get(10).getPose().tx();
-
-                        float[] vector = new float[4];
-                        float dx = (float) getNextDx(j);
-                        float dy = (float) getNextDy(j);
-                        float distance = (float) Math.sqrt(dx * dx + dy * dy);
-
-                        float deg = (float) Math.toDegrees(Math.atan(dx / dy));
-                        if ( dy < 0 ){
-                            deg = deg + 180;
-                        }
-                        Quaternion target = EulerToQuat(-90, -deg, 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
-
-                        vector[0] = target.x;
-                        vector[1] = target.y;
-                        vector[2] = target.z;
-                        vector[3] = target.w;
-
-                        float ddx = dx / distance;
-                        float ddy = dy / distance;
-                        float lastX = 0;
-                        float lastY = 0;
-
-
-
-//                        for (int i = 0; i < getNextDistance(j); i++) {
-//                            Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i * ddy).getTranslation(), vector);
-//                            Anchor anchor = session.createAnchor(pose);
-//                            anchors.add(anchor);
-//                            lastX = 0 + i * ddx;
-//                            lastY = -2f - i * ddy;
-//                        }
                     }
                 }
             }
@@ -770,6 +821,13 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         }
     }
 
+    public boolean isNear(Pose here, Pose end){
+        double dist = Math.sqrt((here.tx() - end.tx()) * (here.tx() - end.tx()) + (here.tz() - end.tz()) * (here.tz() - end.tz()));
+        if ( dist < 3 ) {
+            return true;
+        }
+        return false;
+    }
     @Override
     public void onDrawFrame(GL10 gl10) {
 // Clear screen to notify driver it should not load any pixels from previous frame.
@@ -892,4 +950,17 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         }
     }
 
+    @Override
+    public void onClick(View view) {
+        if ( view == leftRotateButton ){
+            rotate = rotate - 3;
+            anchors.clear();
+            rotated = true;
+        }
+        if ( view == rightRotateButton ){
+            rotate = rotate + 3;
+            anchors.clear();
+            rotated = true;
+        }
+    }
 }

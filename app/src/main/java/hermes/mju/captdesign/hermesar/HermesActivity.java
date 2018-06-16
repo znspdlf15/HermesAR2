@@ -89,7 +89,7 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
 
     private LocationManager mlocationManager;
 
-    private static String mApiKey = "b8758f45-a63e-46a6-a68d-14011fb031f7"; // 발급받은 appKey
+    private static String mApiKey = "3c733353-c814-4203-8fc1-9900f534dc00"; // 발급받은 appKey
     private static int mMarkerID;
     private ArrayList<TMapPoint> m_tmapPoint = new ArrayList<TMapPoint>();
     private ArrayList<String> mArrayMarkerID = new ArrayList<String>();
@@ -173,10 +173,22 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
             re_findPath(Nowpoint);
         }
         if (m_bTrackingMode) {
-            nowLatitude = location.getLatitude();
-            nowLongitude = location.getLongitude();
-            nowAltitude = location.getAltitude();
-            tmapview.setLocationPoint(nowLongitude, nowLatitude);
+            double tLatitude =  location.getLatitude();
+            double tLongitude = location.getLongitude();
+            double tAltitude = location.getAltitude();
+
+            if ( tLatitude != 0 ){
+                nowLatitude = tLatitude;
+            }
+            if ( tLongitude != 0 ){
+                nowLongitude = tLongitude;
+            }
+            if ( tAltitude != 0 ){
+                nowAltitude = tAltitude;
+            }
+            if ( nowLongitude != 0 && nowAltitude != 0) {
+                tmapview.setLocationPoint(nowLongitude, nowLatitude);
+            }
         }
     }
 
@@ -283,6 +295,8 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
             //출발지-목적지간의 시간,거리
             intent.putExtra("Time",min);
             intent.putExtra("Distance",distance);
+            intent.putExtra("nowLongitude", nowLongitude);
+            intent.putExtra("nowLatitude", nowLatitude);
             startActivity(intent);
         }
         //현재 위치 버튼 클릭 시
@@ -324,10 +338,20 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
     }
 
     public void TmapCurrent() {
-        double nowLongitude = tmapgps.getLocation().getLongitude();
-        double nowLatitude = tmapgps.getLocation().getLatitude();
-        tmapview.setCenterPoint(nowLongitude, nowLatitude, true);
-        tmapview.setLocationPoint(nowLongitude, nowLatitude);
+        double tLongitude = tmapgps.getLocation().getLongitude();
+        double tLatitude = tmapgps.getLocation().getLatitude();
+        double nowLongitude = 0;
+        double nowLatitude = 0;
+        if ( tLongitude != 0 ){
+            nowLongitude = tLongitude;
+        }
+        if ( tLatitude != 0 ){
+            nowLatitude = tLatitude;
+        }
+        if ( nowLongitude != 0 && nowLatitude != 0 ){
+            tmapview.setCenterPoint(nowLongitude, nowLatitude, true);
+            tmapview.setLocationPoint(nowLongitude, nowLatitude);
+        }
     }
     public void TmapSetDestination(){
         endpoint = tmapview.getCenterPoint();                         //현재 지도 중심을 도착지로 설정

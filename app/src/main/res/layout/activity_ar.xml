@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_ar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -22,12 +23,39 @@
         android:layout_height="fill_parent"
         android:layout_gravity="top"/>
 
-    <ImageView
-        android:id="@+id/dirImg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background = "@drawable/direction"
-        />
+    <android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="hermes.mju.captdesign.hermesar.HermesActivity">
+
+    <ImageButton
+        android:id="@+id/LeftRotate"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="53dp"
+        android:layout_height="53dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="70dp"
+        android:src="@drawable/undo"
+        android:text="@string/button_current"
+        app:layout_constraintBottom_toBottomOf="@+id/mainView"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageButton
+        android:id="@+id/RightRotate"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="53dp"
+        android:layout_height="53dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/redo"
+        android:text="@string/button_search"
+        app:layout_constraintBottom_toBottomOf="@+id/mainView"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    </android.support.constraint.ConstraintLayout>
 
     <TextView
         android:id="@+id/tv_current_location"
@@ -36,4 +64,10 @@
         android:layout_margin="20dp"
         android:textColor="@android:color/white"
         android:text="GPS is loading..."/>
+
+    <ImageView
+        android:id="@+id/dirImg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/direction" />
 </FrameLayout>
