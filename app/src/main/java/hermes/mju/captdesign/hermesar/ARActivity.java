@@ -222,15 +222,19 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     }
 
     public void initTotalDistance(){
+        if ( listOfPoint.isEmpty() == true) {
+            totalDistance = 0;
+            return;
+        }
         float dx = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
         float dy = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
         float distance = (float)(Math.sqrt(dx*dx + dy*dy) * 60 * 1.1515 * 1609.344);
+        firstDist = distance;
 
         totalDistance = distance;
         for( int n = 0; n < listOfPoint.size()-1; n++){
             totalDistance = totalDistance + (float)getNextDistance(n);
         }
-        totalDistance = totalDistance;
     }
 
     @Override
@@ -558,8 +562,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         if (arOverlayView !=null && location != null) {
             //arOverlayView.updateCurrentLocation(location);
             //tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n" , location.getLatitude(), location.getLongitude(), location.getAltitude()));
-            tvCurrentLocation.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n예상 소요시간: %s \n총 이동거리: %s\n" , location.getLatitude(), location.getLongitude(), location.getAltitude(), time, distance));
-
+            tvCurrentLocation.setText(String.format("예상 소요시간: %s \n목적지까지 이동거리: %s\n현재 이동거리: %sm" , time, distance, go));
 
             /*if (listOfPoint.isEmpty() == false) {
                 if (isNearToHere(new ARPoint("here", tmapgps.getLocation().getLatitude(),
@@ -719,7 +722,25 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         }
         return 0;
     }
+    public int getNowIndex(){
+        float a = go;
+        int index = 0;
 
+        if ( a - firstDist < 0 ){
+            return 0;
+        } else {
+            a = a - firstDist;
+        }
+        for ( int n = 0; n < listOfPoint.size()-1; n++ ){
+            a = (float)(a - getNextDistance(n));
+            if ( a <= 0) {
+                return n+1;
+            }
+        }
+
+        return listOfPoint.size()-1;
+    }
+    float firstDist;
     float lastX = 0;
     float lastY = -2f;
     int nowIndex = 0;
@@ -727,6 +748,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     boolean rotated = false;
     float beforeX = 0;
     float beforeY = 0;
+    float go = 0;
     public void makeAnchor(Frame frame) {
         try {
             for (int j = 0; j < listOfPoint.size(); j++){
@@ -747,7 +769,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                             }
                             deg = deg + rotate;
                             float deg2 = deg;
-                            //deg2 = deg2 - mAzimut; // 보정된 각도 if가 먼저? deg2가 먼저? 일지도 생각해봐야함
+                            deg2 = deg2 - mAzimut; // 보정된 각도 if가 먼저? deg2가 먼저? 일지도 생각해봐야함
 //                            if ( Math.cos(Math.toRadians(deg)) < 0 ){
 //                                deg = deg + 180;
 //                            }                       // suc
@@ -761,6 +783,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                                 lastX = beforeX;
                                 lastY = beforeY;
                                 rotated = false;
+                                go = go - 10;
                             }
 
                             beforeX = lastX;
@@ -771,14 +794,19 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                                 anchors.add(anchor);
                                 lastX = lastX + ddx;
                                 lastY = lastY - ddy;
+                                go++;
                             }
                         }
                     } else {
                         if ( isNear(frame.getCamera().getPose(), anchors.get(anchors.size()-1).getPose()) ){
                             anchors.clear();
+                            int nowIndex = getNowIndex();
+                            if ( go > totalDistance ){
+                                startActivity(new Intent(this, ARPopUp.class));
+                            }
 
-                            float dx = (float)(listOfPoint.get(listOfPoint.size()-1).getLocation().getLongitude() - nowLongitude);
-                            float dy = (float)(listOfPoint.get(listOfPoint.size()-1).getLocation().getLatitude() - nowLatitude);
+                            float dx = (float)(listOfPoint.get(nowIndex).getLocation().getLongitude() - nowLongitude);
+                            float dy = (float)(listOfPoint.get(nowIndex).getLocation().getLatitude() - nowLatitude);
                             float distance = (float)Math.sqrt(dx*dx + dy*dy);
                             float[] vector = new float[4];
 
@@ -788,7 +816,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                             }
                             deg = deg + rotate;
                             float deg2 = deg;
-                            //deg2 = deg - mAzimut;
+                            deg2 = deg - mAzimut;
 //                            if ( Math.cos(Math.toRadians(deg)) < 0 ){
 //                                deg = deg + 180;
 //                            }                       // suc
@@ -797,20 +825,22 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                             //Quaternion target = EulerToQuat(-90, -deg, 0);         // 이거는 화살표의 각도 조절 deg2 or -deg2일듯
                             Quaternion target = EulerToQuat(-90, -deg2, 0);         // 이거는 화살표의 각도 조절 deg2 or -deg2일듯
 
-                            vector[0] = target.x;
-                            vector[1] = target.y;
-                            vector[2] = target.z;
-                            vector[3] = target.w;   // 건들지마셈
+                            vector[0] = target.x; vector[1] = target.y; vector[2] = target.z; vector[3] = target.w;   // 건들지마셈
 
                             float ddx = (float)Math.sin(Math.toRadians(deg2));      // 맞음.
                             float ddy = (float)Math.cos(Math.toRadians(deg2));
 
                             for (int i = 0; i < 10; i++) {
-                                Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(lastX + i * ddx, -1f, lastY - i * ddy).getTranslation(), vector);
+                                Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(lastX, -1f, lastY).getTranslation(), vector);
                                 Anchor anchor = session.createAnchor(pose);
                                 anchors.add(anchor);
+                                lastX = lastX + ddx;
+                                lastY = lastY - ddy;
+                                go++;
                             }
+                            tvCurrentLocation.setText(String.format("예상 소요시간: %s \n목적지까지 이동거리: %s\n현재 이동거리: %sm" , time, distance, go));
                         }
+
                     }
                 }
             }
