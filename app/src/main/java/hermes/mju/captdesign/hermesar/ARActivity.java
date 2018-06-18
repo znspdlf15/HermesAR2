@@ -533,7 +533,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
         dist = Math.acos(dist);
         dist = rad2deg(dist);
 
-        dist = dist * 60 * 1.1515 * 1609.344;       //m로 반환
+        dist = dist * 60 * 1.1515 * 1609.344;       //m단위 로 반환
 
         return dist;
 
@@ -649,6 +649,13 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                     , listOfPoint.get(x+1).getLocation().getLatitude(), listOfPoint.get(x+1).getLocation().getLongitude());
         }
     }
+    int nowPoint = 0;
+    public double getNextDx(int i){
+        return (listOfPoint.get(i+1).getLocation().getLongitude() - listOfPoint.get(i).getLocation().getLongitude());
+    }
+    public double getNextDy(int i){
+        return (listOfPoint.get(i+1).getLocation().getLatitude() - listOfPoint.get(i).getLocation().getLatitude());
+    }
 
     public void makeAnchor(Frame frame){
         try {
@@ -662,13 +669,13 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                 //while ( int i = 0; i < )
                 if (anchors.size() < 10) {
                     float[] vector = new float[4];
-                    float dx = (float)(listOfPoint.get(0).getLocation().getLongitude() - nowLongitude);
-                    float dy = (float)(listOfPoint.get(0).getLocation().getLatitude() - nowLatitude);
+                    float dx = (float)getNextDx(0);
+                    float dy = (float)getNextDy(0);
                     float distance = (float)Math.sqrt(dx*dx + dy*dy);
 
                     float deg = (float)Math.toDegrees(Math.atan(dx/dy));
                     Quaternion target = EulerToQuat(-90, -deg, 0);        // 화살표 회전. roll (-90) : 눕히기, pitch: 방향, yaw : 안건들어도 됨
-                    
+
                     vector[0] = target.x;
                     vector[1] = target.y;
                     vector[2] = target.z;
@@ -676,13 +683,11 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
 
                     float ddx = dx/distance;
                     float ddy = dy/distance;
-                    for ( int i=0; i < 10; i++ ) {
+                    for ( int i=0; i < getNextDistance(0); i++ ) {
                         Pose pose = new Pose(frame.getCamera().getPose().makeTranslation(0 + i * ddx, -1f, -2f - i*ddy).getTranslation(), vector);
                         Anchor anchor = session.createAnchor(pose);
                         anchors.add(anchor);
                     }
-                } else {
-
                 }
             }
 
