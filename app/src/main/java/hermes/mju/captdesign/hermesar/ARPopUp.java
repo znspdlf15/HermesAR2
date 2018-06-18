@@ -19,6 +19,7 @@ public class ARPopUp extends Activity implements View.OnClickListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         //title바 삭제
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
@@ -29,12 +30,14 @@ public class ARPopUp extends Activity implements View.OnClickListener{
 
         //뿌연 효과 정도
         layoutParams.dimAmount= 0.7f;
-
-
-        //적용
+//적용
         getWindow().setAttributes(layoutParams);
+        setContentView(R.layout.ar_pop_up);
 
-        setContentView(R.layout.map_click_pop_up);
+        button = (Button) findViewById(R.id.ok_button);
+        button.setOnClickListener(this);
+
+
 
     }
 

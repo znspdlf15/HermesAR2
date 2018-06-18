@@ -749,6 +749,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
     float beforeX = 0;
     float beforeY = 0;
     float go = 0;
+    boolean popup = false;
     public void makeAnchor(Frame frame) {
         try {
             for (int j = 0; j < listOfPoint.size(); j++){
@@ -769,7 +770,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                             }
                             deg = deg + rotate;
                             float deg2 = deg;
-                            deg2 = deg2 - mAzimut; // 보정된 각도 if가 먼저? deg2가 먼저? 일지도 생각해봐야함
+//                            deg2 = deg2 - mAzimut; // 보정된 각도 if가 먼저? deg2가 먼저? 일지도 생각해봐야함
 //                            if ( Math.cos(Math.toRadians(deg)) < 0 ){
 //                                deg = deg + 180;
 //                            }                       // suc
@@ -801,8 +802,9 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                         if ( isNear(frame.getCamera().getPose(), anchors.get(anchors.size()-1).getPose()) ){
                             anchors.clear();
                             int nowIndex = getNowIndex();
-                            if ( go > totalDistance ){
+                            if ( go > totalDistance && popup == false){
                                 startActivity(new Intent(this, ARPopUp.class));
+                                popup = true;
                             }
 
                             float dx = (float)(listOfPoint.get(nowIndex).getLocation().getLongitude() - nowLongitude);
@@ -816,7 +818,7 @@ public class ARActivity extends AppCompatActivity implements SensorEventListener
                             }
                             deg = deg + rotate;
                             float deg2 = deg;
-                            deg2 = deg - mAzimut;
+//                            deg2 = deg - mAzimut;
 //                            if ( Math.cos(Math.toRadians(deg)) < 0 ){
 //                                deg = deg + 180;
 //                            }                       // suc

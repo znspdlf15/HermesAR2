@@ -302,7 +302,6 @@ public class HermesActivity extends Activity implements TMapGpsManager.onLocatio
         //현재 위치 버튼 클릭 시
         if(view == currentButton){
             TmapCurrent();
-
         }
         //시작지 버튼 클릭 시
         if(view == startButton){
