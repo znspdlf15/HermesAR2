@@ -30,35 +30,35 @@
 
     </LinearLayout>
 
-    <Button
+    <CheckBox
         android:id="@+id/compass"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="49dp"
-        android:layout_height="49dp"
+        android:layout_width="52dp"
+        android:layout_height="60dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginTop="8dp"
-        android:text="방향"
+        android:button="@drawable/btn_change"
         app:layout_constraintEnd_toEndOf="@+id/mainView"
         app:layout_constraintTop_toBottomOf="@+id/zoomout" />
 
-    <Button
+
+    <ImageButton
         android:id="@+id/zoomin"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="49dp"
-        android:layout_height="49dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp"
-        android:text="+"
+        android:src="@drawable/zoomin"
         app:layout_constraintEnd_toEndOf="@+id/mainView"
         app:layout_constraintTop_toBottomOf="@+id/startButton" />
 
-    <Button
+    <ImageButton
         android:id="@+id/zoomout"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="49dp"
-        android:layout_height="49dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:layout_marginEnd="16dp"
-        android:text="-"
+        android:src="@drawable/zoomout"
         app:layout_constraintEnd_toEndOf="@+id/mainView"
         app:layout_constraintTop_toBottomOf="@+id/zoomin" />
 
@@ -92,24 +92,26 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/mainView" />
 
-    <Button
+    <ImageButton
         android:id="@+id/CurrentButton"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="53dp"
+        android:layout_height="53dp"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
+        android:src="@drawable/nowlocation"
         android:text="@string/button_current"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/mainView"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
+    <ImageButton
         android:id="@+id/SearchButton"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="53dp"
         android:layout_marginBottom="16dp"
-        android:layout_marginEnd="120dp"
+        android:layout_marginEnd="76dp"
+        android:src="@drawable/search"
         android:text="@string/button_search"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
